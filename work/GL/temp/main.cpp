@@ -36,10 +36,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "CameraNVMParser.hpp"
+#include <opencv2/opencv.hpp>
 
 GLMmodel *pmodel;
 
 using namespace std;
+using namespace cv;
+
+void snapshot(char*);
 
 void computeCamera();
 //Called when a key is pressed
@@ -47,6 +51,8 @@ void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27: //Escape key
 			exit(0);
+        case 'p':
+            snapshot("snap.jpg");
 	}
 }
 
@@ -146,7 +152,7 @@ double focal = 1200;
 void computeCamera() {
     mat3x3 intr;
     mat3x4 extr;
-    CameraNVMParser::getCameraMatrix("00000010.jpg", intr, extr, camC, focal);
+    CameraNVMParser::getCameraMatrix("00000014.jpg", intr, extr, camC, focal);
 //    glMatrixMode(GL_PROJECTION);
 //    glLoadIdentity();
 //    glOrtho(0, 1024, 768, 0, 0, 100);
@@ -161,15 +167,30 @@ void computeCamera() {
     cout << Pinv[0][0] << " " << Pinv[0][1] << " " << Pinv[0][2] << endl;
 }
 
+int curW = 0, curH = 0;
+
 //Called when the window is resized
 void handleResize(int w, int h) {
+    curW = w; curH = h;
 	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     // compute fovy given focal len
-    GLdouble fovy = 3 * atan(h/(2.0*focal)) * 180/3.14;
+    GLdouble fovy = 2 * atan(h/(2.0*focal)) * 180/3.14;
     cout << "using fovy = " << fovy << endl;
 	gluPerspective(fovy, (double)w / (double)h, 1.0, 200.0);
+}
+
+void snapshot(char* filename) {
+    Mat img(curH, curW, CV_8UC3);
+    glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
+    glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
+    glReadPixels((GLint) 0, (GLint) 0,
+            (GLint) curW - 1, (GLint) curH - 1,
+            GL_BGR, GL_UNSIGNED_BYTE, img.data);
+    Mat flipped;
+    flip(img, flipped, 0);
+    imwrite(filename, flipped);
 }
 
 int main(int argc, char** argv) {

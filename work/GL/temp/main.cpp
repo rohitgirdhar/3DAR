@@ -85,12 +85,21 @@ void mouseControl(int button, int state, int x, int  y) {
     }
 }
 
+mat3x4 Pcam;
+mat4x3 Pinv;
+vec3 camC;
+vec4 qRot;
+
+
 void drawScene() {
     
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 //	glMatrixMode(GL_MODELVIEW);
 //	glLoadIdentity();
+//    float angle = -2 * acos(qRot[0]) * 180/3.14;
+//    cout << "Quat rot by angle : " << angle << endl;
+ //   glRotatef(angle, qRot[1], qRot[2], qRot[3]);
 //    gluLookAt(cons*res[0][3], cons*res[1][3], cons*res[2][3], 0, 0, 0, 0, 1, 0);
 
     //glTranslatef(3.910, 1.82, 0.877);
@@ -99,7 +108,8 @@ void drawScene() {
     //gluLookAt(-0.02, 0.02, -0.12, 0, 0, -8.0, 0, 1, 0);
 //	glTranslatef(0.0f, 0.0f, -8.0f);
 	
-	//Add ambient light
+	
+    //Add ambient light
 	GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color (0.2, 0.2, 0.2)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 	
@@ -145,14 +155,18 @@ void update(int value) {
 	glutTimerFunc(2, update, 0);
 }
 
-mat3x4 Pcam;
-mat4x3 Pinv;
-vec3 camC;
 double focal = 1200;
+mat3x3 intr;
+mat3x4 extr;
+
 void computeCamera() {
-    mat3x3 intr;
-    mat3x4 extr;
-    CameraNVMParser::getCameraMatrix("00000014.jpg", intr, extr, camC, focal);
+    CameraNVMParser::getCameraMatrix(
+            "00000089.jpg", 
+            intr, 
+            extr, 
+            camC, 
+            focal,
+            qRot);
 //    glMatrixMode(GL_PROJECTION);
 //    glLoadIdentity();
 //    glOrtho(0, 1024, 768, 0, 0, 100);
@@ -204,11 +218,22 @@ int main(int argc, char** argv) {
     initRendering();
 
     computeCamera();
+    cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
+    
     gluLookAt(camC[0],camC[1],camC[2],
-            camC[0]+Pinv[0][2]/Pinv[3][2],
-            camC[1]+Pinv[1][2]/Pinv[3][2],
-            camC[2]+Pinv[2][2]/Pinv[3][2],
+            camC[0] + extr[2][0],
+            camC[1] + extr[2][1],
+            camC[2] + extr[2][2],
             0,-1,0); 
+    
+   /* 
+    gluLookAt(camC[0],camC[1],camC[2],
+            camC[0],
+            camC[1],
+            camC[2]+1,
+            0,1,0); 
+     */   
+
 //    glMatrixMode(GL_PROJECTION);
 //    gluPerspective(90, 1.33, 0.1, 1000);
 //    gluLookAt(5,5,5,0,0,0,0,1,0);

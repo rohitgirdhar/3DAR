@@ -17,7 +17,8 @@ void CameraNVMParser::getCameraMatrix(
         mat3x3 &intr, 
         mat3x4 &extr,
         vec3 &camC,
-        double& focal) {
+        double& focal,
+        vec4 &qRot) {
 
     for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) intr[i][j] = 0;
 
@@ -44,11 +45,12 @@ void CameraNVMParser::getCameraMatrix(
             float focal_len;
             iss_1 >> focal_len;
             focal = focal_len;
-            intr[0][0] = intr[1][1] = focal_len;
+            intr[0][0] = 20*focal_len;
+            intr[1][1] = -20*focal_len;
 
             getline(infile, line); // principal point
-//            istringstream iss0(line);
-//            iss0 >> intr[0][2] >> intr[1][2];
+            istringstream iss0(line);
+            iss0 >> intr[0][2] >> intr[1][2];
             intr[2][2] = 1;
 
 //            float near = 0, far = 100;
@@ -65,6 +67,9 @@ void CameraNVMParser::getCameraMatrix(
             iss_c >> camC[0] >> camC[1] >> camC[2];
             getline(infile, line); // R
             getline(infile, line); // R quat
+            istringstream iss_2(line);
+            iss_2 >> qRot[0] >> qRot[1] >> qRot[2] >> qRot[3];
+
             getline(infile, line); 
             istringstream iss2(line);
             iss2 >> extr[0][0] >> extr[0][1] >> extr[0][2]; 

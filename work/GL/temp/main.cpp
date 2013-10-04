@@ -173,10 +173,10 @@ void drawScene() {
 //    glRotatef(20, 0,1,0);
     glRotatef(180, 1,0,0);
     glRotatef(60, 0,1,0);
-    glTranslatef(0, 0, 2.8);  
-    glTranslatef(6.5, 0, 0);
+    glTranslatef(0, 0, 2.9);
+    glTranslatef(7.4, 0, 0);
     glTranslatef(0,1,0);  // inc to go up
-    glScalef(4, 4, 4);
+    glScalef(3.8, 3.8, 3.8);
     glmDraw(pmodel_act, mode);
 
     glPopMatrix();
@@ -197,7 +197,7 @@ void update(int value) {
 
 void computeCamera() {
     CameraNVMParser::getCameraMatrix(
-            "00000020.jpg", 
+            "00000206.jpg", 
             intr, 
             extr, 
             camC, 

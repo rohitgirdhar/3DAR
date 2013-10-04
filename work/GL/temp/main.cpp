@@ -38,7 +38,7 @@
 #include "CameraNVMParser.hpp"
 #include <opencv2/opencv.hpp>
 
-GLMmodel *pmodel;
+GLMmodel *pmodel, *pmodel_act;
 
 using namespace std;
 using namespace cv;
@@ -47,12 +47,18 @@ void snapshot(char*);
 
 void computeCamera();
 //Called when a key is pressed
+
+int ptCld = 1;
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27: //Escape key
 			exit(0);
         case 'p':
             snapshot("snap.jpg");
+            break;
+        case 't':
+            ptCld = (ptCld + 1) % 2;
+            break;
 	}
 }
 
@@ -89,12 +95,29 @@ mat3x4 Pcam;
 mat4x3 Pinv;
 vec3 camC;
 vec4 qRot;
+double focal = 1200;
+mat3x3 intr;
+mat3x4 extr;
 
 
 void drawScene() {
     
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+//    gluLookAt(-15,0,30,0,0,-2,0,-1,0); // seeing left of model
+//    gluLookAt(25,0,30,0,0,-5,0,-1,0); // seeing back
+//    gluLookAt(25,0,0,0,0,5,0,-1,0); // seeing right 
+//    gluLookAt(-2,0,-30,0,0,5,0,-1,0); // seeing front
+    
+    gluLookAt(camC[0],camC[1],camC[2],
+            camC[0] + extr[2][0],
+            camC[1] + extr[2][1],
+            camC[2] + extr[2][2],
+            -extr[1][0],
+            -extr[1][1],
+            -extr[1][2]); 
+
+    glMatrixMode(GL_MODELVIEW);
 //	glMatrixMode(GL_MODELVIEW);
 //	glLoadIdentity();
 //    float angle = -2 * acos(qRot[0]) * 180/3.14;
@@ -120,9 +143,10 @@ void drawScene() {
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 	
 	//Add directed light
-	GLfloat lightColor1[] = {0.5f, 0.2f, 0.2f, 1.0f}; //Color (0.5, 0.2, 0.2)
+	GLfloat lightColor1[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.2, 0.2)
 	//Coming from the direction (-1, 0.5, 0.5)
-	GLfloat lightPos1[] = {-1.0f, 0.5f, 0.5f, 0.0f};
+	//GLfloat lightPos1[] = {-1.0f, 0.5f, 0.5f, 0.0f};
+    GLfloat lightPos1[] = {-extr[2][0], -extr[2][1], -extr[2][2], 0.0f};
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
 	glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
 	
@@ -140,7 +164,22 @@ void drawScene() {
 
     mode = mode | GLM_TEXTURE;
 
-    glmDraw(pmodel, mode);
+    glPushMatrix();
+    glLoadIdentity(); 
+//    glmDraw(pmodel, mode);
+//    glTranslatef(10, 0, 10);
+//    glScalef(20, 20, 20);
+//    glRotatef(180, 0,0,1);
+//    glRotatef(20, 0,1,0);
+    glRotatef(180, 1,0,0);
+    glRotatef(60, 0,1,0);
+    glTranslatef(0, 0, 2.8);  
+    glTranslatef(6.5, 0, 0);
+    glTranslatef(0,1,0);  // inc to go up
+    glScalef(4, 4, 4);
+    glmDraw(pmodel_act, mode);
+
+    glPopMatrix();
 
 	glutSwapBuffers(); // commented out since I just need a snapshot
 }
@@ -155,13 +194,10 @@ void update(int value) {
 	glutTimerFunc(2, update, 0);
 }
 
-double focal = 1200;
-mat3x3 intr;
-mat3x4 extr;
 
 void computeCamera() {
     CameraNVMParser::getCameraMatrix(
-            "00000089.jpg", 
+            "00000020.jpg", 
             intr, 
             extr, 
             camC, 
@@ -192,7 +228,7 @@ void handleResize(int w, int h) {
     // compute fovy given focal len
     GLdouble fovy = 2 * atan(h/(2.0*focal)) * 180/3.14;
     cout << "using fovy = " << fovy << endl;
-	gluPerspective(fovy, (double)w / (double)h, 1.0, 200.0);
+	gluPerspective(fovy, (double)w / (double)h, 1.0, 2000.0);
 }
 
 void snapshot(char* filename) {
@@ -219,20 +255,17 @@ int main(int argc, char** argv) {
 
     computeCamera();
     cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
+   
     
     gluLookAt(camC[0],camC[1],camC[2],
             camC[0] + extr[2][0],
             camC[1] + extr[2][1],
             camC[2] + extr[2][2],
-            0,-1,0); 
+            -extr[1][0],
+            -extr[1][1],
+            -extr[1][2]); 
     
-   /* 
-    gluLookAt(camC[0],camC[1],camC[2],
-            camC[0],
-            camC[1],
-            camC[2]+1,
-            0,1,0); 
-     */   
+   
 
 //    glMatrixMode(GL_PROJECTION);
 //    gluPerspective(90, 1.33, 0.1, 1000);
@@ -245,9 +278,12 @@ int main(int argc, char** argv) {
 
 
     pmodel = glmReadOBJ("dense.0.mesh.obj");
+    pmodel_act = glmReadOBJ("../../mesh.obj");
 //    pmodel = glmReadOBJ("final.obj");
  //   glmUnitize(pmodel);
+    glmUnitize(pmodel_act);
     glmVertexNormals(pmodel, 90.0, GL_TRUE);
+    glmVertexNormals(pmodel_act, 90.0, GL_TRUE);
     //Set handler functions
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(handleKeypress);

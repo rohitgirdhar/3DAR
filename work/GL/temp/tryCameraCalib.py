@@ -3,7 +3,7 @@
 import cv2
 import numpy
 
-f = open('ptcorrs/00000002.ptcorr')
+f = open('ptcorrs/00000001.ptcorr')
 pts3d = []
 pts2d = []
 
@@ -26,5 +26,6 @@ ret, cameraMat, distCoeff, rvecs, tvecs = cv2.calibrateCamera(
         flags = cv2.CALIB_USE_INTRINSIC_GUESS)
 print cameraMat
 res = cv2.Rodrigues(numpy.array(rvecs).reshape(1,3).astype('float32'))
-print rvecs
+print "rvec", rvecs
+print "center", -res[0].T.dot(tvecs)
 print res[0]

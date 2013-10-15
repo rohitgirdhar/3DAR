@@ -1,27 +1,3 @@
-/* Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above notice and this permission notice shall be included in all copies
- * or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-/* File for "Lighting" lesson of the OpenGL tutorial on
- * www.videotutorialsrock.com
- */
-
-
-
 #include <iostream>
 #include <stdlib.h>
 
@@ -36,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "CameraNVMParser.hpp"
+#include "CameraTransformer.hpp"
 #include <opencv2/opencv.hpp>
 
 GLMmodel *pmodel, *pmodel_act;
@@ -100,37 +77,29 @@ mat3x3 intr;
 mat3x4 extr;
 
 
+
+vec3 center, look, up;
 void drawScene() {
     
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-//    gluLookAt(-15,0,30,0,0,-2,0,-1,0); // seeing left of model
-//    gluLookAt(25,0,30,0,0,-5,0,-1,0); // seeing back
-//    gluLookAt(25,0,0,0,0,5,0,-1,0); // seeing right 
-//    gluLookAt(-2,0,-30,0,0,5,0,-1,0); // seeing front
-    
-    gluLookAt(camC[0],camC[1],camC[2],
+/*    gluLookAt(camC[0],camC[1],camC[2],
             camC[0] + extr[2][0],
             camC[1] + extr[2][1],
             camC[2] + extr[2][2],
             -extr[1][0],
             -extr[1][1],
             -extr[1][2]); 
+*/
+    gluLookAt(center[0], center[1], center[2],
+            center[0] + look[0],
+            center[1] + look[1],
+            center[2] + look[2],
+            up[0],
+            up[1],
+            up[2]); 
 
     glMatrixMode(GL_MODELVIEW);
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//    float angle = -2 * acos(qRot[0]) * 180/3.14;
-//    cout << "Quat rot by angle : " << angle << endl;
- //   glRotatef(angle, qRot[1], qRot[2], qRot[3]);
-//    gluLookAt(cons*res[0][3], cons*res[1][3], cons*res[2][3], 0, 0, 0, 0, 1, 0);
-
-    //glTranslatef(3.910, 1.82, 0.877);
-    //glTranslatef(0,0,-0);
-//    glScaled(scale, scale, scale);
-    //gluLookAt(-0.02, 0.02, -0.12, 0, 0, -8.0, 0, 1, 0);
-//	glTranslatef(0.0f, 0.0f, -8.0f);
-	
 	
     //Add ambient light
 	GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color (0.2, 0.2, 0.2)
@@ -150,8 +119,6 @@ void drawScene() {
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
 	glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
 	
-	//glRotatef(_angle, 0.0f, 1.0f, 0.0f);
-    //cout << _angle << endl;
 	glColor3f(1.0f, 1.0f, 0.0f);
 
     int mode = 0;    
@@ -167,10 +134,6 @@ void drawScene() {
     glPushMatrix();
     glLoadIdentity(); 
 //    glmDraw(pmodel, mode);
-//    glTranslatef(10, 0, 10);
-//    glScalef(20, 20, 20);
-//    glRotatef(180, 0,0,1);
-//    glRotatef(20, 0,1,0);
     glRotatef(180, 1,0,0);
     glRotatef(60, 0,1,0);
     glTranslatef(0, 0, 2.9);
@@ -181,7 +144,7 @@ void drawScene() {
 
     glPopMatrix();
 
-	glutSwapBuffers(); // commented out since I just need a snapshot
+	glutSwapBuffers();
 }
 
 void update(int value) {
@@ -197,7 +160,7 @@ void update(int value) {
 
 void computeCamera() {
     CameraNVMParser::getCameraMatrix(
-            "00000206.jpg", 
+            "00000072.jpg", 
             intr, 
             extr, 
             camC, 
@@ -256,8 +219,10 @@ int main(int argc, char** argv) {
     computeCamera();
     cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
    
-    
-    gluLookAt(camC[0],camC[1],camC[2],
+    CameraTransformer ob;
+    ob.recalibrateCamera("00000001", "00000001", center, look, up);
+
+/*    gluLookAt(camC[0],camC[1],camC[2],
             camC[0] + extr[2][0],
             camC[1] + extr[2][1],
             camC[2] + extr[2][2],
@@ -265,7 +230,7 @@ int main(int argc, char** argv) {
             -extr[1][1],
             -extr[1][2]); 
     
-   
+  */ 
 
 //    glMatrixMode(GL_PROJECTION);
 //    gluPerspective(90, 1.33, 0.1, 1000);

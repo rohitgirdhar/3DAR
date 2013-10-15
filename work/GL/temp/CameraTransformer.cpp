@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
 #include "CameraTransformer.hpp"
 
 using namespace std;
@@ -22,9 +23,9 @@ void CameraTransformer::recalibrateCamera(
     
     string path_im_q = string(images_root) + source_fname + ".jpg";
     string path_im_m = string(images_root) + match_fname + ".jpg";
-    Mat im_q = imread(path_im_q.c_str());
-    Mat im_m = imread(path_im_m.c_str());
-    Mat H = computeHomography(im_q, im_m);
+    Mat im_q = imread(path_im_q.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    Mat im_m = imread(path_im_m.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    Mat H = computeHomography(im_m, im_q);
     
     vector<Point3f> pts3d;
     vector<Point2f> pts2d;
@@ -86,6 +87,75 @@ void CameraTransformer::recalibrateCamera(
     center[2] = -C.at<double>(2);
 }
 
-Mat CameraTransformer::computeHomography(Mat a, Mat b) {
-    return Mat::eye(3, 3, CV_64F); // for now
+Mat CameraTransformer::computeHomography(Mat img_object, Mat img_scene) {
+    if (!img_object.data || !img_scene.data) {
+        cerr << "Unable to read the image files" << endl;
+        exit(-1);
+    }
+    int minHessian = 400;
+
+    SurfFeatureDetector detector( minHessian );
+
+    std::vector<KeyPoint> keypoints_object, keypoints_scene;
+
+    detector.detect( img_object, keypoints_object );
+    detector.detect( img_scene, keypoints_scene );
+
+//    cout << "kp : " << keypoints_object.size() << endl;
+    
+    //-- Step 2: Calculate descriptors (feature vectors)
+    SurfDescriptorExtractor extractor;
+
+    Mat descriptors_object, descriptors_scene;
+
+    extractor.compute( img_object, keypoints_object, descriptors_object );
+    extractor.compute( img_scene, keypoints_scene, descriptors_scene );
+
+    //-- Step 3: Matching descriptor vectors using FLANN matcher
+    FlannBasedMatcher matcher;
+    std::vector< DMatch > matches;
+    matcher.match( descriptors_object, descriptors_scene, matches );
+
+//    cout << "matches : " << matches.size() << endl;
+
+    double max_dist = 0; double min_dist = 100;
+
+    //-- Quick calculation of max and min distances between keypoints
+    for( int i = 0; i < descriptors_object.rows; i++ )
+    { double dist = matches[i].distance;
+        if( dist < min_dist ) min_dist = dist;
+        if( dist > max_dist ) max_dist = dist;
+    }
+
+    std::vector< DMatch > good_matches;
+
+    cout << "max/min dist : " << max_dist << " " << min_dist << endl;
+
+    for( int i = 0; i < descriptors_object.rows; i++ )
+    { if( matches[i].distance <= 3*min_dist )
+        { good_matches.push_back( matches[i]); }
+    }
+   
+    /*
+    Mat img_matches;
+    drawMatches( img_object, keypoints_object, img_scene, keypoints_scene,
+            good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+            vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+    */
+    cout << "Good matches : " << good_matches.size() << endl;
+    
+    //-- Localize the object
+    std::vector<Point2f> obj;
+    std::vector<Point2f> scene;
+
+    for( int i = 0; i < good_matches.size(); i++ )
+    {
+        //-- Get the keypoints from the good matches
+        obj.push_back( keypoints_object[ good_matches[i].queryIdx ].pt );
+        scene.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
+    }
+
+    return findHomography( obj, scene, CV_RANSAC );
+
+    //return Mat::eye(3, 3, CV_64F); // for now
 }

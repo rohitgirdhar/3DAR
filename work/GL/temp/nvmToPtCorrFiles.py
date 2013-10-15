@@ -2,6 +2,9 @@
 
 # split the nvm file point correspondence for  each image, the point correspondence with the point cloud
 
+# .ptcorr format:
+# <3 components of 3D point> <2 components of 2D point>
+
 import os
 import shutil 
 

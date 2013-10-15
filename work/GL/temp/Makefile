@@ -1,7 +1,7 @@
 CC = g++
 PROG = a.out
 
-SRCS = main.cpp CameraNVMParser.cpp glm/*.c
+SRCS = main.cpp CameraNVMParser.cpp CameraTransformer.cpp glm/*.c
 
 ifeq ($(shell uname),Darwin)
 	LIBS = -framework OpenGL -framework GLUT

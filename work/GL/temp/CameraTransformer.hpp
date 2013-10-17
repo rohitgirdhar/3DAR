@@ -7,6 +7,11 @@
 
 class CameraTransformer {
     cv::Mat computeHomography(cv::Mat, cv::Mat);
+    void visualizeMatching(
+            cv::Mat, 
+            cv::Mat,
+            std::vector<cv::Point2f>, 
+            std::vector<cv::Point2f>);
     public:
     /**
      * function to re-caliberate camera using matching image and

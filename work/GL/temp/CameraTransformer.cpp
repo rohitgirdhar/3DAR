@@ -15,6 +15,13 @@ using namespace std;
 using namespace glm;
 using namespace cv;
 
+void tempFun(Mat H) {
+    Mat I = imread("snap.jpg");
+    Mat T;
+    warpPerspective(I, T, H, Size(1024, 768));
+    imwrite("snap-mod.jpg", T);
+}
+
 void CameraTransformer::recalibrateCamera(
         string source_fname,
         string match_fname,
@@ -26,7 +33,7 @@ void CameraTransformer::recalibrateCamera(
     char *images_root = "../../StoneChariotReconst/dense.nvm.cmvs/00/visualize/";
     char *ptcorr_root = "ptcorrs/";
     
-    string path_im_q = string(images_root) + source_fname + ".jpg";
+    string path_im_q = source_fname;
     string path_im_m = string(images_root) + match_fname + ".jpg";
     Mat im_q = imread(path_im_q.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
     Mat im_m = imread(path_im_m.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
@@ -52,6 +59,11 @@ void CameraTransformer::recalibrateCamera(
 
     Mat H = computeHomography(im_m, im_q);
 
+    cout << "Got Homography : " << endl;
+    cout << H << endl;
+
+    tempFun(H);
+
     perspectiveTransform(pts2d_old, pts2d, H);
     visualizeMatching(im_q, im_m, pts2d, pts2d_old);
     Mat cameraMat = Mat::eye(3, 3, CV_64F), distCoeff = Mat::zeros(8, 1, CV_64F);
@@ -71,6 +83,7 @@ void CameraTransformer::recalibrateCamera(
             rvecs,
             tvecs,
             CV_CALIB_USE_INTRINSIC_GUESS);
+    this->intCameraMat = cameraMat;
     Mat rotMat;
     Rodrigues(rvecs[0], rotMat);
 //    cout << "Rot mat: " << rotMat << endl;
@@ -125,8 +138,8 @@ Mat CameraTransformer::computeHomography(
     double max_dist = 0; double min_dist = 100;
 
     //-- Quick calculation of max and min distances between keypoints
-    for( int i = 0; i < descriptors_object.rows; i++ )
-    { double dist = matches[i].distance;
+    for( int i = 0; i < descriptors_object.rows; i++ ) { 
+        double dist = matches[i].distance;
         if( dist < min_dist ) min_dist = dist;
         if( dist > max_dist ) max_dist = dist;
     }
@@ -135,8 +148,8 @@ Mat CameraTransformer::computeHomography(
 
     cout << "max/min dist : " << max_dist << " " << min_dist << endl;
 
-    for( int i = 0; i < descriptors_object.rows; i++ )
-    { if( matches[i].distance <= 3*min_dist )
+    for( int i = 0; i < descriptors_object.rows; i++ ) { 
+        if( matches[i].distance <= 3*min_dist )
         { good_matches.push_back( matches[i]); }
     }
    
@@ -161,7 +174,25 @@ Mat CameraTransformer::computeHomography(
         scene.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
     }
 
-    return findHomography( obj, scene, CV_RANSAC );
+    this->H = findHomography( obj, scene, CV_RANSAC );
+
+    std::vector<Point2f> obj_corners(4);
+    obj_corners[0] = cvPoint(0,0); obj_corners[1] = cvPoint( img_object.cols, 0 );
+    obj_corners[2] = cvPoint( img_object.cols, img_object.rows ); obj_corners[3] = cvPoint( 0, img_object.rows );
+
+    vector<Point2f> scene_corners(4);
+
+    perspectiveTransform( obj_corners, scene_corners, H);
+
+        line( img_matches, scene_corners[0] + Point2f( img_object.cols, 0), scene_corners[1] + Point2f( img_object.cols, 0), Scalar(0, 255, 0), 4 );
+    line( img_matches, scene_corners[1] + Point2f( img_object.cols, 0), scene_corners[2] + Point2f( img_object.cols, 0), Scalar( 0, 255, 0), 4 );
+    line( img_matches, scene_corners[2] + Point2f( img_object.cols, 0), scene_corners[3] + Point2f( img_object.cols, 0), Scalar( 0, 255, 0), 4 );
+    line( img_matches, scene_corners[3] + Point2f( img_object.cols, 0), scene_corners[0] + Point2f( img_object.cols, 0), Scalar( 0, 255, 0), 4 );
+
+    //-- Show detected matches
+    imwrite( "ObjectDetection.jpg", img_matches );
+
+    return this->H;
 }
 
 void CameraTransformer::visualizeMatching(
@@ -173,12 +204,17 @@ void CameraTransformer::visualizeMatching(
     vector<DMatch> matches;
     int i;
     float ppx = 512, ppy = 384;
+
+    for (int pt = 0; pt < old_pts.size(); pt++) {
+        old_pts[pt].x += ppx; old_pts[pt].y += ppy;
+    }
+    perspectiveTransform(old_pts, new_pts, this->H);
     for (i = 0; i < new_pts.size(); i++) {
-        new_kpts.push_back(KeyPoint(new_pts[i].x + ppx, new_pts[i].y + ppy, 1));
-        old_kpts.push_back(KeyPoint(old_pts[i].x + ppx, old_pts[i].y + ppy, 1));
+        new_kpts.push_back(KeyPoint(new_pts[i].x , new_pts[i].y , 1));
+        old_kpts.push_back(KeyPoint(old_pts[i].x , old_pts[i].y , 1));
 //        matches.push_back(DMatch(i, i, 0));
     }
     Mat img_matches;
     drawMatches(old_img, old_kpts, new_img, new_kpts, matches, img_matches);
-    imwrite("matches.jpg", img_matches);
+    imwrite("kpmatches.jpg", img_matches);
 }

@@ -1,3 +1,8 @@
+/**
+ * TODO
+ * 1. Pass the fovy, fovx from the CameraTransformer, for resize function settings
+ */
+
 #include <iostream>
 #include <stdlib.h>
 
@@ -91,6 +96,8 @@ void drawScene() {
             -extr[1][1],
             -extr[1][2]); 
 */
+    cout << "Using in lookAt: " << endl;
+    cout << "Camera center: " << center[0] << " " << center[1] << " " << center[2] << endl;
     gluLookAt(center[0], center[1], center[2],
             center[0] + look[0],
             center[1] + look[1],
@@ -160,7 +167,7 @@ void update(int value) {
 
 void computeCamera() {
     CameraNVMParser::getCameraMatrix(
-            "00000072.jpg", 
+            "00000017.jpg", 
             intr, 
             extr, 
             camC, 
@@ -181,6 +188,7 @@ void computeCamera() {
 }
 
 int curW = 0, curH = 0;
+CameraTransformer ob;
 
 //Called when the window is resized
 void handleResize(int w, int h) {
@@ -189,7 +197,7 @@ void handleResize(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     // compute fovy given focal len
-    GLdouble fovy = 2 * atan(h/(2.0*focal)) * 180/3.14;
+    GLdouble fovy = 2 * atan(h/(2.0 * ob.intCameraMat.at<double>(1,1))) * 180/3.14;
     cout << "using fovy = " << fovy << endl;
 	gluPerspective(fovy, (double)w / (double)h, 1.0, 2000.0);
 }
@@ -216,11 +224,15 @@ int main(int argc, char** argv) {
 	glutCreateWindow("Pose");
     initRendering();
 
-    computeCamera();
-    cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
+//    computeCamera();
+//    cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
    
-    CameraTransformer ob;
-    ob.recalibrateCamera("00000001", "00000001", center, look, up);
+    ob.recalibrateCamera(
+            /* source image = */ "test/00000017.jpg", 
+            /* matching image index = */"00000001", 
+            /* output */ center, 
+            /* output */ look, 
+            /* output */ up);
 
 /*    gluLookAt(camC[0],camC[1],camC[2],
             camC[0] + extr[2][0],

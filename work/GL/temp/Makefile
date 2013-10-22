@@ -1,5 +1,6 @@
 CC = g++
 PROG = a.out
+CFLAGS=-w
 
 SRCS = main.cpp CameraNVMParser.cpp CameraTransformer.cpp glm/*.c
 

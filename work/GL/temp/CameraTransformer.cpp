@@ -1,13 +1,10 @@
-/**
- * TODO
- * 1. Change how query img is read
- */
 
 #include <glm/glm.hpp>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <cmath>
 #include <opencv2/nonfree/nonfree.hpp>
 #include "CameraTransformer.hpp"
 
@@ -65,6 +62,23 @@ void CameraTransformer::recalibrateCamera(
     tempFun(H);
 
     perspectiveTransform(pts2d_old, pts2d, H);
+
+    // correct the matches using F
+    bool correctOnF = false;
+    if (correctOnF) {
+        vector<Point2f> pts2d_old_c, pts2d_c;
+        cout << this->F << endl;
+        correctMatches(this->F, pts2d_old, pts2d, pts2d_old_c, pts2d_c); 
+        pts2d_old = pts2d_old_c;
+        pts2d = pts2d_c;
+    }
+
+    bool refineOnFExp = false;
+    if (refineOnFExp) {
+        refineOnF(pts3d, pts2d, pts2d_old);
+        cout << "refined to " << pts3d.size() << " " << pts2d.size() << endl;
+    }
+
     visualizeMatching(im_q, im_m, pts2d, pts2d_old);
     Mat cameraMat = Mat::eye(3, 3, CV_64F), distCoeff = Mat::zeros(8, 1, CV_64F);
     vector<Mat> rvecs, tvecs;
@@ -74,6 +88,8 @@ void CameraTransformer::recalibrateCamera(
     imgs.push_back(pts2d);
     objs.resize(imgs.size(), objs[0]);
     cameraMat = initCameraMatrix2D(objs, imgs, Size(1024, 768));
+
+
     calibrateCamera(
             objs,
             imgs, 
@@ -175,6 +191,17 @@ Mat CameraTransformer::computeHomography(
     }
 
     this->H = findHomography( obj, scene, CV_RANSAC );
+//    vector<char> status(obj.size(), 0);
+    vector<uchar> status;
+    this->F = findFundamentalMat(obj, scene, FM_RANSAC, 3, 0.99, status);
+//    cout << status.type() << endl;
+    for (int i = 0; i < obj.size(); i++) {
+        if ((int)status[i]) {
+            this->seedPts.push_back(keypoints_object[i]);
+            this->qPts.push_back(keypoints_scene[i]);
+        }
+    }
+//    cout << " GOT : " << this->seedPts.size() << " " << obj.size() << endl;
 
     std::vector<Point2f> obj_corners(4);
     obj_corners[0] = cvPoint(0,0); obj_corners[1] = cvPoint( img_object.cols, 0 );
@@ -218,3 +245,48 @@ void CameraTransformer::visualizeMatching(
     drawMatches(old_img, old_kpts, new_img, new_kpts, matches, img_matches);
     imwrite("kpmatches.jpg", img_matches);
 }
+
+double get_dist(Point2f a, Point2f b) {
+    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
+}
+
+void CameraTransformer::refineOnF(
+        vector<Point3f>& pts3d,
+        vector<Point2f>& pts2d_output,
+        vector<Point2f>& pts2d) {
+    // the matching points are present in seedPts, qPts
+    vector<Point3f> pts3d_f;
+    vector<Point2f> pts2d_f;
+    double THRESH = 20;
+
+    // modify the seed / q points to take care of principal point 
+    vector<Point2f> seedPts2, qPts2;
+    for (int i = 0; i < seedPts.size(); i++) {
+        seedPts2.push_back(Point2f(
+                    this->seedPts[i].pt.x - 512,
+                    this->seedPts[i].pt.x - 384));
+        qPts2.push_back(Point2f(
+                    this->qPts[i].pt.x - 512,
+                    this->qPts[i].pt.x - 384));
+    }
+
+    for (int i = 0; i < seedPts2.size(); i++) {
+        double min_dist = 99999;
+        int min_dist_idx = 0;
+        for (int j = 0; j < pts2d.size(); j++) {
+            double d = get_dist(pts2d[j], seedPts2[i]);
+            if (d < min_dist) {
+                min_dist = d;
+                min_dist_idx = j;
+            }
+        }
+        cout << min_dist << endl;
+        if (min_dist < THRESH) {
+            pts3d_f.push_back(pts3d[min_dist_idx]);
+            pts2d_f.push_back(qPts2[i]);
+        }
+    }
+    pts2d_output = pts2d_f;
+    pts3d = pts3d_f;
+}
+

@@ -12,8 +12,14 @@ class CameraTransformer {
             cv::Mat,
             std::vector<cv::Point2f>, 
             std::vector<cv::Point2f>);
+    void refineOnF(
+            std::vector<cv::Point3f>& pts3d,
+            std::vector<cv::Point2f>& pts2d_output,
+            std::vector<cv::Point2f>& pts2d);
     public:
     cv::Mat H;
+    cv::Mat F;
+    std::vector<cv::KeyPoint> seedPts, qPts;
     cv::Mat intCameraMat; // intrinsic camera matrix for the query image
     /**
      * function to re-caliberate camera using matching image and

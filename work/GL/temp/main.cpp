@@ -19,18 +19,28 @@
 #include "CameraNVMParser.hpp"
 #include "CameraTransformer.hpp"
 #include <opencv2/opencv.hpp>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
 
-GLMmodel *pmodel, *pmodel_act;
+GLMmodel *pmodel, *pmodel_act, *pmodel_final;
 
 using namespace std;
 using namespace cv;
 
-void snapshot(char*);
+Mat snapshot(char*);
+void mergeImgs(Mat&, Mat, Mat);
+void mergeImgs2(Mat&, Mat, Mat);
 
 void computeCamera();
 //Called when a key is pressed
 
-int ptCld = 1;
+char *src_img = "test/00000001.jpg", *match_img = "00000001";
+
+int ptCld = 0;
+int top = 1;
+double i = 0.31, j = 1.05, k = 0.03, r= 270, s = 29;
 void handleKeypress(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27: //Escape key
@@ -38,10 +48,43 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'p':
             snapshot("snap.jpg");
             break;
+        case '[':
+            snapshot("snap_match.jpg");
+            break;
         case 't':
             ptCld = (ptCld + 1) % 2;
             break;
+        case '1':
+            top = (top + 1) % 2;
+            break;
+        case 'q': {
+            Mat img1 = imread(src_img);
+            Mat snap_match = imread("snap_match.jpg");
+            Mat snap = imread("snap.jpg");
+            mergeImgs(img1, snap, snap_match);
+            imwrite("result.jpg", img1);
+            break;
+        }
+        case 'i': i += 0.01;
+                  break;
+        case 'j': j += 0.01;
+                  break;
+        case 'k': k += 0.01;
+                  break;
+        case 'u': i -= 0.01;
+                  break;
+        case 'h': j -= 0.01;
+                  break;
+        case 'l': k -= 0.01;
+                  break;
+        case 'r': r += 10;
+                  break;
+        case 's': s += 0.1;
+                  break;
+        case 'a': s -= 0.1;
+                  break;
 	}
+    glutPostRedisplay();
 }
 
 //Initializes 3D rendering
@@ -52,7 +95,7 @@ void initRendering() {
 	glEnable(GL_LIGHT0); //Enable light #0
 	glEnable(GL_LIGHT1); //Enable light #1
 	glEnable(GL_NORMALIZE); //Automatically normalize normals
-	//glShadeModel(GL_SMOOTH); //Enable smooth shading
+	glShadeModel(GL_SMOOTH); //Enable smooth shading
 }
 
 
@@ -81,11 +124,43 @@ double focal = 1200;
 mat3x3 intr;
 mat3x4 extr;
 
+int curW = 0, curH = 0;
+CameraTransformer ob;
+
 
 
 vec3 center, look, up;
+int idx = 0;
+
+
+string rem; int rem_num = -1;
+string ZeroPadNumber(int num)
+{
+    if (rem_num == num) return rem;
+    ostringstream ss;
+    ss << setw( 8 ) << setfill( '0' ) << num;
+    rem_num = num;
+    return rem = ss.str();
+}
+
+void handleResize(int,int);
+
 void drawScene() {
     
+    if (idx > 284) {
+        exit(0);
+    }
+
+    string src_img = string("../../StoneChariotReconst/dense.nvm.cmvs/00/visualize/") + ZeroPadNumber(idx) + ".jpg";
+    string match_img = ZeroPadNumber(idx);
+    ob.recalibrateCamera(
+            /* source image = */ src_img.c_str(), 
+            /* matching image index = */ match_img.c_str(), 
+            /* output */ center, 
+            /* output */ look, 
+            /* output */ up);
+    handleResize(1024, 768);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 /*    gluLookAt(camC[0],camC[1],camC[2],
@@ -105,11 +180,10 @@ void drawScene() {
             up[0],
             up[1],
             up[2]); 
-
     glMatrixMode(GL_MODELVIEW);
 	
     //Add ambient light
-	GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color (0.2, 0.2, 0.2)
+	GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.2, 0.2, 0.2)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 	
 	//Add positioned light
@@ -122,11 +196,11 @@ void drawScene() {
 	GLfloat lightColor1[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.2, 0.2)
 	//Coming from the direction (-1, 0.5, 0.5)
 	//GLfloat lightPos1[] = {-1.0f, 0.5f, 0.5f, 0.0f};
-    GLfloat lightPos1[] = {-extr[2][0], -extr[2][1], -extr[2][2], 0.0f};
+    GLfloat lightPos1[] = {center[0], center[1], center[2], 0.0f};
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
 	glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
 	
-	glColor3f(1.0f, 1.0f, 0.0f);
+	glColor3f(0.97f, 0.91f, 0.78f);
 
     int mode = 0;    
 
@@ -134,9 +208,11 @@ void drawScene() {
 
     mode = mode | GLM_2_SIDED;
 
-    mode = mode | GLM_MATERIAL;
+    //mode = mode | GLM_MATERIAL;
 
-    mode = mode | GLM_TEXTURE;
+    //mode = mode | GLM_TEXTURE;
+
+
 
     glPushMatrix();
     glLoadIdentity(); 
@@ -146,11 +222,43 @@ void drawScene() {
     glTranslatef(0, 0, 2.9);
     glTranslatef(7.4, 0, 0);
     glTranslatef(0,1,0);  // inc to go up
-    glScalef(3.8, 3.8, 3.8);
-    glmDraw(pmodel_act, mode);
+    glScalef(3.4, 3.4, 3.4);
+    if (ptCld) {
+        glmDraw(pmodel_act, mode);
+    }
+    cout << "tx by " << i << " " << j << " " << k << endl;
+    glTranslatef(i,j,k);
+    cout << "rot  by : " << r << endl;
+    glRotatef(r,0,1,0);
+    glScalef(s,s,s);
+    cout << "scale by : " << s << endl;
+    if (top) {
+        glPushMatrix();
+        glmDraw(pmodel_final, mode);
+        glPopMatrix();
+    }
 
     glPopMatrix();
-
+    
+    Mat snap = snapshot(NULL);
+    if (top == 1) {
+        imwrite(string("snapshots/head_") + ZeroPadNumber(idx) + string(".jpg"),
+                snap);
+        top = 0;
+        ptCld = 1;
+    } else if (ptCld == 1) {
+        imwrite(string("snapshots/body_") + ZeroPadNumber(idx) + string(".jpg"),
+                snap);
+        Mat other = imread(string("snapshots/head_") + ZeroPadNumber(idx) + string(".jpg"));
+        Mat net = other.clone();
+        mergeImgs2(net, other, snap);
+        imwrite(string("snapshots/final_") + ZeroPadNumber(idx) + string(".jpg"), net);
+        top = 1;
+        ptCld = 0;
+        idx ++;
+    }
+    // THis function refreshes the display!!
+    glutPostRedisplay();
 	glutSwapBuffers();
 }
 
@@ -187,9 +295,6 @@ void computeCamera() {
     cout << Pinv[0][0] << " " << Pinv[0][1] << " " << Pinv[0][2] << endl;
 }
 
-int curW = 0, curH = 0;
-CameraTransformer ob;
-
 //Called when the window is resized
 void handleResize(int w, int h) {
     curW = w; curH = h;
@@ -202,7 +307,7 @@ void handleResize(int w, int h) {
 	gluPerspective(fovy, (double)w / (double)h, 1.0, 2000.0);
 }
 
-void snapshot(char* filename) {
+Mat snapshot(char* filename) {
     Mat img(curH, curW, CV_8UC3);
     glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
     glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
@@ -211,7 +316,37 @@ void snapshot(char* filename) {
             GL_BGR, GL_UNSIGNED_BYTE, img.data);
     Mat flipped;
     flip(img, flipped, 0);
-    imwrite(filename, flipped);
+    if (filename != NULL) {
+        imwrite(filename, flipped);
+    }
+    return flipped;
+}
+
+void mergeImgs2(Mat& orig, Mat snap, Mat snap_match) {
+    for (int i = 0; i < snap.rows; i++) {
+        for (int j = 0; j < snap.cols; j++) {
+            orig.at<Vec3b>(i,j) = Vec3b(0,0,0);
+            if (norm(snap.at<Vec3b>(i,j)) > 10) {
+                if (norm(snap_match.at<Vec3b>(i,j)) < 2) {
+                    orig.at<Vec3b>(i,j) = snap.at<Vec3b>(i,j);
+                }
+            }
+        }
+    }
+
+}
+
+void mergeImgs(Mat& orig, Mat snap, Mat snap_match) {
+    for (int i = 0; i < snap.rows; i++) {
+        for (int j = 0; j < snap.cols; j++) {
+            if (norm(snap.at<Vec3b>(i,j)) > 10) {
+                if (norm(snap_match.at<Vec3b>(i,j)) < 2) {
+                    orig.at<Vec3b>(i,j) = snap.at<Vec3b>(i,j);
+                }
+            }
+        }
+    }
+
 }
 
 int main(int argc, char** argv) {
@@ -227,9 +362,10 @@ int main(int argc, char** argv) {
 //    computeCamera();
 //    cout << "Camera Center: " << camC[0] << " " << camC[1] << " " << camC[2] << endl;
    
+    
     ob.recalibrateCamera(
-            /* source image = */ "test/00000017.jpg", 
-            /* matching image index = */"00000001", 
+            /* source image = */ src_img, 
+            /* matching image index = */ match_img, 
             /* output */ center, 
             /* output */ look, 
             /* output */ up);
@@ -256,11 +392,14 @@ int main(int argc, char** argv) {
 
     pmodel = glmReadOBJ("dense.0.mesh.obj");
     pmodel_act = glmReadOBJ("../../mesh.obj");
+    pmodel_final = glmReadOBJ("chariot_top_final.obj");
 //    pmodel = glmReadOBJ("final.obj");
  //   glmUnitize(pmodel);
     glmUnitize(pmodel_act);
+    glmUnitize(pmodel_final);
     glmVertexNormals(pmodel, 90.0, GL_TRUE);
     glmVertexNormals(pmodel_act, 90.0, GL_TRUE);
+    glmVertexNormals(pmodel_final, 90.0, GL_TRUE);
     //Set handler functions
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(handleKeypress);

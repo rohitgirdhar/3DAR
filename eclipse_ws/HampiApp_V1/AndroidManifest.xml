@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.vittalatemple"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="18" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/icon_temple"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.NoTitleBar" >
+        <activity
+            android:name="com.example.vittalatemple.LaunchActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullscreenTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.QueryActivity"
+            android:label="@string/title_activity_query"
+            android:parentActivityName="com.example.vittalatemple.LaunchActivity"
+            android:screenOrientation="landscape" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.vittalatemple.LaunchActivity" />
+        </activity>
+                <activity
+            android:name="com.example.vittalatemple.Sample3Native"
+            android:label="@string/app_name"
+            android:parentActivityName="com.example.vittalatemple.LaunchActivity"
+            android:screenOrientation="landscape" 
+            android:configChanges="keyboardHidden|orientation">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.vittalatemple.LaunchActivity" />
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.QueryMenuActivity"
+            android:label="@string/title_activity_querymenu"
+            android:parentActivityName="com.example.vittalatemple.QueryActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.vittalatemple.QueryActivity" />
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.UploadActivity"
+            android:label="@string/app_name"
+            android:parentActivityName="com.example.vittalatemple.LaunchActivity"
+            android:screenOrientation="landscape" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.vittalatemple.LaunchActivity" />
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.UploadMenuActivity"
+            android:label="@string/title_activity_uploadmenu"
+            android:parentActivityName="com.example.vittalatemple.UploadActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.vittalatemple.UploadActivity" />
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.FeedbackActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_feedback"
+            android:theme="@style/FullscreenTheme" >
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.GetFeedback"
+            android:label="@string/title_activity_get_feedback" >
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.Feedback"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_feedback"
+            android:theme="@style/FullscreenTheme" >
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.InfoListActivity"
+            android:label="@string/title_info_list" >
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.InfoDetailActivity"
+            android:label="@string/title_info_detail"
+            android:parentActivityName=".InfoListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".InfoListActivity" />
+        </activity>
+        <activity
+            android:name="com.example.vittalatemple.AbstractQueryDetails"
+            android:label="@string/title_activity_abstract_query_details"
+            android:exported="true" >
+        </activity>
+    </application>
+
+</manifest>

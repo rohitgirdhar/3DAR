@@ -3,7 +3,7 @@
 import cv2
 import numpy
 
-fname = "00000017" # name of the closest matched image
+fname = "00000010" # name of the closest matched image
 bin_size = 1 # 4x4 blocks
 img_shape = (1024, 768)
 

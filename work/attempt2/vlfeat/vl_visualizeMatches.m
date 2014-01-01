@@ -1,4 +1,4 @@
-function [M] = vl_visualizeMatches(imgA, kptsA, imgB, kptsB, matches, scores, thresh = 100)
+function [M] = vl_visualizeMatches(imgA, kptsA, imgB, kptsB, matches, scores, thresh)
     % imgA = B/W image 1
     % kptsA : kpts detected from image A using vl_sift => F
     % img B, kptsB <similar to A>

@@ -19,4 +19,14 @@ function vl_siftNmatch(I, P, good)
         matches = matches2;
     end
     
+       
+    % FORMAT : <I 2d pt> <P 2d pt> score
+    f = fopen('matches.txt', 'w');
+    for i = 1 : size(matches, 2)
+        src = matches(1, i);
+        dst = matches(2, i);
+        fprintf(f, '%f %f %f %f %f\n', fI(1, src), fI(2, src), fP(1, dst), fP(2, dst), scores(i));
+    end
+    fclose(f);
+    
     vl_visualizeMatches(I, fI, P, fP, matches, scores, 100);

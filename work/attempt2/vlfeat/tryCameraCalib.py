@@ -67,3 +67,7 @@ res = cv2.Rodrigues(numpy.array(rvecs).reshape(1,3).astype('float32'))
 print "rvec", rvecs
 print "center", -res[0].T.dot(tvecs)
 print res[0]
+f = open('cam.txt', 'w')
+print >> f, cameraMat[0][0]
+print >> f, '\n'.join(' '.join(str(cell) for cell in row) for row in res[0])
+f.close()

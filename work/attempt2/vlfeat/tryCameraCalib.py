@@ -3,8 +3,8 @@
 import cv2
 import numpy
 
-fname = "00000010" # name of the closest matched image
-bin_size = 1 # 4x4 blocks
+fname = "00000016" # name of the closest matched image
+bin_size = 1 # 1x1 blocks
 img_shape = (1024, 768)
 
 def cameraCalib(pts2d, pts3d):
@@ -65,9 +65,13 @@ cameraMat, rvecs, tvecs = cameraCalib(pts2d_final, pts3d_final)
 print cameraMat
 res = cv2.Rodrigues(numpy.array(rvecs).reshape(1,3).astype('float32'))
 print "rvec", rvecs
-print "center", -res[0].T.dot(tvecs)
+print "tvecs", tvecs
+center = -numpy.matrix(res[0].T) * numpy.matrix(tvecs[0])
+
+print "center", center 
 print res[0]
 f = open('cam.txt', 'w')
 print >> f, cameraMat[0][0]
+print >> f, center.item(0), center.item(1), center.item(2)
 print >> f, '\n'.join(' '.join(str(cell) for cell in row) for row in res[0])
 f.close()

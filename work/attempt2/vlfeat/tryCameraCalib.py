@@ -2,8 +2,9 @@
 
 import cv2
 import numpy
+import sys
 
-fname = "00000016" # name of the closest matched image
+fname = sys.argv[1] # name of the closest matched image
 bin_size = 1 # 1x1 blocks
 img_shape = (1024, 768)
 

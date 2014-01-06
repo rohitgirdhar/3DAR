@@ -4,8 +4,8 @@ function [M] = vl_visualizeMatches(imgA, kptsA, imgB, kptsB, matches, scores, th
     % img B, kptsB <similar to A>
     % matches, scores : from vl_ubcmatch
     % thresh : show matches only above a given threshold (set as 100)
-    M = appendimages(imgA, imgB);
-    imshow(M);
+    M = figure;
+    image( appendimages(imgA, imgB) );
     hold on;
     for i = 1 : size(matches, 2)
         if (scores(i) < thresh)
@@ -17,3 +17,4 @@ function [M] = vl_visualizeMatches(imgA, kptsA, imgB, kptsB, matches, scores, th
         %plot(pos2(1), pos2(2), 'g.');
         plot([pos1(1) pos2(1)], [pos1(2) pos2(2)], 'g');
     end
+    saveTightFigure(M, 'matches.jpg');

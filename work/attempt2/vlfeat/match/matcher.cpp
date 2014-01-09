@@ -11,6 +11,7 @@
 #include "opencv2/opencv.hpp"
 
 #define OUTPUT_FILE "../matches.txt"
+#define MATCHES_IMG_FILE "../matches.jpg"
 
 using namespace cv;
 using namespace std;
@@ -38,7 +39,7 @@ int main( int argc, char** argv )
 
 //  SurfFeatureDetector detector( minHessian );
 //  FastFeatureDetector detector( 10 );
-    SiftFeatureDetector detector;
+  SiftFeatureDetector detector;
 
   std::vector<KeyPoint> keypoints_1, keypoints_2;
 
@@ -69,7 +70,7 @@ int main( int argc, char** argv )
 
   vector< DMatch > close_matches;
   for (int i = 0; i < matches.size(); i++) {
-      if (matches[i].distance < 8 * min_dist) {
+      if (matches[i].distance <= 6 * min_dist) {
         close_matches.push_back(matches[i]);
       }
   }
@@ -100,6 +101,7 @@ int main( int argc, char** argv )
                vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
 
   //-- Show detected matches
+  imwrite(MATCHES_IMG_FILE, img_matches);
   imshow( "Good Matches", img_matches );
   waitKey(0);
 

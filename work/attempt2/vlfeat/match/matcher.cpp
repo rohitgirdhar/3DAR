@@ -39,7 +39,8 @@ int main( int argc, char** argv )
 
 //  SurfFeatureDetector detector( minHessian );
 //  FastFeatureDetector detector( 10 );
-  SiftFeatureDetector detector;
+//  SiftFeatureDetector detector;
+  SIFT  detector(4000);
 
   std::vector<KeyPoint> keypoints_1, keypoints_2;
 
@@ -70,7 +71,7 @@ int main( int argc, char** argv )
 
   vector< DMatch > close_matches;
   for (int i = 0; i < matches.size(); i++) {
-      if (matches[i].distance <= 6 * min_dist) {
+      if (matches[i].distance <= 8 * min_dist) {
         close_matches.push_back(matches[i]);
       }
   }

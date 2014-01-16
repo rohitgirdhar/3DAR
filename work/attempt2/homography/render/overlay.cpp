@@ -26,7 +26,7 @@
 using namespace std;
 using namespace cv;
 
-Mat snapshot(char*);
+Mat snapshot(const char*);
 void mergeImgs(Mat&, Mat, Mat);
 void mergeImgs2(Mat&, Mat, Mat);
 void mouseControl(int button, int state, int x, int  y);
@@ -176,7 +176,7 @@ void handleResize(int w, int h) {
 	gluPerspective(fovy, (double)w / (double)h, 1.0, 2000.0);
 }
 
-Mat snapshot(char* filename) {
+Mat snapshot(const char* filename) {
     Mat img(curH, curW, CV_8UC3);
     glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
     glPixelStorei(GL_PACK_ROW_LENGTH, img.step/img.elemSize());
@@ -186,6 +186,7 @@ Mat snapshot(char* filename) {
     Mat flipped;
     flip(img, flipped, 0);
     if (filename != NULL) {
+        cout << "Writing snap file to " << filename << endl;
         imwrite(filename, flipped);
     }
     return flipped;
@@ -231,7 +232,7 @@ void readCamFile() {
 void help() {
     cout << "Usage: ./a.out <matching file name |eg 00000001> "
          << " <cam file path> <FOVY_MULTIPLY_FACTOR>" 
-         << "<snapshot file path>" << endl;
+         << " <snapshot file path>" << endl;
 }
 
 int main(int argc, char** argv) {

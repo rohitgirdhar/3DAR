@@ -16,11 +16,10 @@
 #include <sstream>
 #include <string>
 
-//#define OBJ_FILE "../../../charminar_model_2/dense.0.meshed.obj"
-//#define OBJ_FILE "../../../charminar_obj/charminar_aligned2.obj"
-#define OBJ_FILE "../../../charminar_obj/augments/charminar_aligned_augment1.obj"
-#define OBJ_FILE_CUR "3dmodel/empty.obj"
-//#define OBJ_FILE "3dmodel/dense.0.mesh.obj"
+//#define OBJ_FILE "../../../charminar_obj/augments/charminar_aligned_augment1.obj"
+#define OBJ_FILE "../../../vitallaObj/final_aligned/aligned_top.obj"
+//#define OBJ_FILE_CUR "3dmodel/empty.obj"
+#define OBJ_FILE_CUR "../../../vitallaObj/final_aligned/aligned_body.obj"
 
 
 using namespace std;
@@ -40,8 +39,8 @@ float focalLen;
 float center[3];
 float rotMat[3][3];
 int curW = 0, curH = 0;
-//bool clickedCur = false; // this is just state flag
-bool clickedCur = true; // now will only use the augments
+bool clickedCur = false; // this is just state flag
+//bool clickedCur = true; // now will only use the augments
 Mat snap, cur;
 void handleKeypress(unsigned char key, int x, int y);
 
@@ -139,7 +138,10 @@ void drawScene() {
         cur = snapshot("cur.jpg");
     } else {
         glmDraw(pmodel, mode);
-        snap = snapshot(snapshot_fpath.c_str());
+        snap = snapshot(NULL);
+        Mat res = snap.clone();
+        mergeImgs2(res, snap, cur);
+        imwrite(snapshot_fpath.c_str(), res);
         exit(0);
     }
     glPopMatrix();

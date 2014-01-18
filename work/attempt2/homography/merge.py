@@ -15,7 +15,7 @@ def merge(overlay, orig):
                 orig[i][j] = overlay[i][j]
     return orig
     
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
     help()
     sys.exit(0)
 

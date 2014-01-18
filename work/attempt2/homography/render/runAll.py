@@ -3,6 +3,8 @@
 import sys
 import os
 
+SNAPSHOTS_DIR = "snapshots_sc/"
+
 def help():
     print './runAll.py <cameras_v2.txt file path>'
 
@@ -33,7 +35,7 @@ for i in range(1, 1000):
     ftemp.close()
 
     os.system('make')
-    cmd = './a.out ' + idx + ' tempcam.txt 2 snapshots/' + idx + ".jpg"
+    cmd = './a.out ' + idx + ' tempcam.txt 2 ' + SNAPSHOTS_DIR + idx + ".jpg"
     print 'Calling:', cmd
     os.system(cmd)
 

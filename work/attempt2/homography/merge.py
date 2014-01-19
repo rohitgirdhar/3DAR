@@ -32,5 +32,5 @@ resized_I = cv2.resize(I, (crop_O.shape[1], crop_O.shape[0]))
 
 res = merge(crop_O, resized_I)
 cv2.imwrite("result.jpg", res)
-cv2.imshow("test", res)
-cv2.waitKey(0)
+#cv2.imshow("test", res)
+#cv2.waitKey(0)

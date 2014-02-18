@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     f2.open(fout.c_str(), ios::out);
     for (int i = 0; i < npoints; i++) {
         f2 << locs[i].data[0] << " " << locs[i].data[1] << " "
-           << locs[i].data[2] << " " << locs[i].data[3];
+           << locs[i].data[3] << " " << locs[i].data[4];
         for (int j = 0; j < 128; j++) {
             if (j % 20 == 0) f2 << endl << " ";
             f2 << (int) sifts[i].data[j] << " ";
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     }
     f2.close();
 
-    delete locs; delete sifts;
+    delete[] locs; delete[] sifts;
 
     return 0;
 }

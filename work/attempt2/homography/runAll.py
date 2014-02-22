@@ -22,9 +22,10 @@ for i in range(N):
 
     os.chdir('txHomo/')
     start = time.time()
-    subprocess.call('./a.out ' + imgs_root + match + '.jpg ' + 
-            imgs_root + img + '.jpg ' +
-            snaps_root + match + '.jpg 2', shell=True)
+    subprocess.call('./matcher ' + imgs_root + match + '.jpg ' + 
+            imgs_root + img + '.jpg ' + ' m.txt', shell=True)
+    subprocess.call('./augmenter m.txt ' +
+            snaps_root + match + '.jpg 2 ', shell=True)
     end = time.time()
     print '>>>>>>>>Transformed snap in', end-start, ' secs'
     os.chdir('..')

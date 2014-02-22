@@ -1,8 +1,3 @@
-/**
- * @file SURF_FlannMatcher
- * @brief SURF detector + descriptor + FLANN Matcher
- * @author A. Huaman
- */
 
 #include <cstdio>
 #include <cstdlib>
@@ -23,32 +18,15 @@ void readme();
  * @brief Main function
  */
 
-Mat addBorder(Mat src, int scale) {
-    int orig_rows = src.rows, orig_cols = src.cols;
-    resize(src, src, Size(0,0), (1.0/scale), (1.0/scale));
-    int pad_sides = (orig_cols - src.cols) / 2.0;
-    int pad_top = (orig_rows - src.rows) / 2.0;
-    copyMakeBorder(src, src,
-            pad_top, pad_top, 
-            pad_sides, pad_sides,
-            BORDER_CONSTANT);
-    return src;
-}
-
 int main( int argc, char** argv )
 {
-  if( argc < 5 )
+  if( argc < 4 )
   { readme(); return -1; }
 
   Mat img_1 = imread( argv[1], IMREAD_GRAYSCALE);
   Mat img_2 = imread( argv[2], IMREAD_GRAYSCALE);
-  int scale = atoi(argv[4]);
+  char* output_fname = argv[3];
   
-  img_1 = addBorder(img_1, scale);
-  img_2 = addBorder(img_2, scale);
-//  imshow("test", img_1);
-//  waitKey(0);
-
   if( !img_1.data || !img_2.data )
   { std::cout<< " --(!) Error reading images " << std::endl; return -1; }
 
@@ -122,32 +100,18 @@ int main( int argc, char** argv )
   std::vector<Point2f> obj;
   std::vector<Point2f> scene;
 
+  ofstream fout;
+  fout.open(output_fname, ios::out);
+  Point2f pt1, pt2;
+
   for( int i = 0; i < good_matches.size(); i++ )
   {
     //-- Get the keypoints from the good matches
-    obj.push_back( keypoints_1[ good_matches[i].queryIdx ].pt );
-    scene.push_back( keypoints_2[ good_matches[i].trainIdx ].pt );
+    pt1 = keypoints_1[ good_matches[i].queryIdx ].pt;
+    pt2 = keypoints_2[ good_matches[i].trainIdx ].pt;
+    fout << pt1.x << " " << pt1.y << " " << pt2.x << " " << pt2.y << endl;
   }
-
-  Mat H = findHomography( obj, scene, RANSAC );
-
-  Mat K = imread(argv[3]), Ktx;
-  warpPerspective(K, Ktx, H, Size(K.cols, K.rows));
-  imwrite("snapmod.jpg", Ktx);
-  cout << "Written mod image to snapmod.jpg" << endl;
-
-  //-- Draw only "good" matches
-  Mat img_matches;
-  drawMatches( img_1, keypoints_1, img_2, keypoints_2,
-               good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
-               vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
-
-  //-- Show detected matches
-  imwrite("matches.jpg", img_matches);
-  cout << "Written matches to matches.jpg" << endl;
-//  imshow( "Good Matches", img_matches );
-//  waitKey(0);
-
+  fout.close();
   return 0;
 }
 
@@ -155,5 +119,5 @@ int main( int argc, char** argv )
  * @function readme
  */
 void readme()
-{ std::cout << " Usage: ./a.out <closest_img_path> <query_img_path> <image to tx> <scale>" << std::endl; }
+{ std::cout << " Usage: ./a.out <closest_img_path> <query_img_path> <output_fname>" << std::endl; }
 

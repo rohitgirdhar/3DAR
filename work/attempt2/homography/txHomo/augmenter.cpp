@@ -17,6 +17,14 @@ using namespace cv;
 using namespace std;
 
 void readme();
+float scale;
+float numRows, numCols;
+
+Point2f txPoint(Point2f a) {
+    Point2f sc = (1.0f / scale) * a;
+    return Point2f( sc.x + (1.0f - 1.0f / scale) * numCols / 2.0f,
+            sc.y + (1.0f - 1.0f / scale) * numRows / 2.0f);
+}
 
 int main( int argc, char** argv )
 {
@@ -25,9 +33,10 @@ int main( int argc, char** argv )
 
   char *m_file = argv[1];
   char *targetIm = argv[2];
-  int scale = atoi(argv[3]);
+  scale = (float) atoi(argv[3]);
 
-  Mat K = imread(targetIm, IMREAD_GRAYSCALE);
+  Mat K = imread(targetIm);
+  numRows = K.rows; numCols = K.cols;
   
   if( !K.data )
   { std::cout<< " --(!) Error reading images " << std::endl; return -1; }
@@ -39,12 +48,11 @@ int main( int argc, char** argv )
   fin.open(m_file);
 
   float x, y;
-  float ADD_X = K.rows * scale / 2.0f;
-  float ADD_Y = K.cols * scale / 2.0f;
   while( fin >> x >> y )
   {
-    obj.push_back(Point2f(x + ADD_X, y + ADD_Y));
-    fin >> x >> y; scene.push_back(Point2f(x + ADD_X, y + ADD_Y));
+    obj.push_back( txPoint(Point2f(x, y)) );
+    fin >> x >> y; 
+    scene.push_back( txPoint(Point2f(x, y)) );
   }
 
   Mat H = findHomography( obj, scene, RANSAC );

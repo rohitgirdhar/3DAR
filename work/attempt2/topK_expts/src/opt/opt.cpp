@@ -3,17 +3,23 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <cstdlib>
 
 #define E_FILE "E.txt"
 #define N 285
 #define K 10
-#define INF 9999999999
+#define INF 999999
 #define MU 1.0f
 #define LAMBDA 1.0f
 #define COST_RECALIB 100.0f
 #define COST_HOMO 100.0f
 
 using namespace std;
+
+float E[N][N];
+const int Na = 4 * N + N * N + 2 * N * N + 4 * N * N;
+int ia[Na], ja[Na];
+double ar[Na];
 
 string itos(int a) {
     stringstream ss;
@@ -27,7 +33,7 @@ string ctos(char a) {
     return ss.str();
 }
 
-void solve(float E[][N]) {
+void solve() {
     glp_prob *lp;
     lp = glp_create_prob();
     glp_set_prob_name(lp, "top-K");
@@ -38,7 +44,7 @@ void solve(float E[][N]) {
      *
      * e1, e2, ... , en (N)
      * a1 ... an, b1 ... bn, c1 ... cn (3 * N)
-     * Z11 ... Znn, Z2_11 ... Z2_nn (2 * N * N)
+     * Z11 Z12 ... Znn, Z2_11 ... Z2_nn (2 * N * N)
      */
     glp_add_cols(lp, N + 3 * N + 2 * N * N);
     int col_num = 1;
@@ -94,8 +100,7 @@ void solve(float E[][N]) {
 
     int total_rows = N + 1 + 2 * (N + N * N) + 2 * (N * N);
     glp_add_rows(lp, total_rows);
-    int ia[3*N], ja[3*N];
-    double ar[3*N];
+    
     int row_num = 1;
     int idx = 0;
     // a_i + b_i ... = 1
@@ -113,7 +118,68 @@ void solve(float E[][N]) {
         row_num ++;
     }
 
-    glp_load_matrix(lp, 3*N-1, ia, ja, ar);
+    // sum (a_i) <= K
+    glp_set_row_name(lp, row_num, "limit-k");
+    glp_set_row_bnds(lp, row_num, GLP_DB, 0, K);
+    for (int i = 1; i <= N; i++) {
+        ia[idx] = row_num;
+        ja[idx] = N + i;
+        ar[idx] = 1;
+        idx ++;
+    }
+    row_num ++;
+
+    // sum_j { Z_{ij} } = 1  forall i (N)
+    for (int i = 1; i <= N; i++) {
+        glp_set_row_name(lp, row_num, "limit-Z");
+        glp_set_row_bnds(lp, row_num, GLP_FX, 1, 1);
+        for (int j = 1; j <= N; j++) {
+            ia[idx] = row_num;
+            ja[idx] = 4 * N + N * (i - 1) + j;
+            ar[idx] = 1;
+            idx ++;
+        }
+        row_num ++;
+    }
+    
+    // Z_ij - a_j <= 0
+    for (int i = 1; i <= N; i++) {
+        for (int j = 1; j <= N; j++) {
+            glp_set_row_bnds(lp, row_num, GLP_UP, -INF, 0);
+            ia[idx] = row_num;
+            ja[idx] = 4 * N + N * (i - 1) + j;
+            ar[idx] = 1;
+            idx ++;
+            ia[idx] = row_num;
+            ja[idx] = N + j;
+            ar[idx] = -1;
+            idx ++;
+            row_num ++;
+        }
+    }
+
+    // E_ij * a_j + (-M)...
+    for (int i = 1; i <= N; i++) {
+        for (int j = 1; j <= N; j++) {
+            glp_set_row_bnds(lp, row_num, GLP_UP, 0, 3 * INF);
+            ia[idx] = row_num; ja[idx] = i; ar[idx] = -1;
+            idx ++;
+            ia[idx] = row_num; ja[idx] = N + j; 
+            ar[idx] = E[i-1][j-1]/10000.0 + INF;
+            idx ++;
+            ia[idx] = row_num; ja[idx] = 4 * N + N * (i - 1) + j;
+            ar[idx] = INF;
+            idx ++;
+            ia[idx] = row_num; ja[idx] = 3 * N + i; 
+            ar[idx] = INF;
+            idx ++;
+
+            row_num ++;
+        }
+    }
+    
+
+    glp_load_matrix(lp, Na-1, ia, ja, ar);
     glp_iocp param;
     glp_init_iocp(&param);
     param.presolve = GLP_ON;
@@ -137,20 +203,25 @@ void solve(float E[][N]) {
     glp_delete_prob(lp);
 }
 
-void readEFile(const char *fname, float E[][N]) {
+void readEFile(const char *fname) {
     ifstream fin;
+    string s;
     fin.open(fname);
     for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {    
-            fin >> E[i][j];
+        for (int j = 0; j < N; j++) {
+            fin >> s;
+            if (s.compare("inf") != 0) {
+                E[i][j] = atof(s.c_str());
+            } else {
+                E[i][j] = INF;
+            }
         }
     }
     fin.close();
 }
 
 int main() {
-    float E[N][N];
-    readEFile(E_FILE, E);
+    readEFile(E_FILE);
     cout << "Read E File" << endl;
-    solve(E);
+    solve();
 }

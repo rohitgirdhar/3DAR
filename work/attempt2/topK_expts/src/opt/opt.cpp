@@ -6,7 +6,8 @@
 #include <cstdlib>
 
 #define E_FILE "E.txt"
-#define N 285
+#define OUT_FILE "output.txt"
+#define N 10
 #define K 10
 #define INF 999999
 #define MU 1.0f
@@ -185,20 +186,28 @@ void solve() {
     param.presolve = GLP_ON;
     int err = glp_intopt(lp, &param);
 
+    ofstream fout;
+    fout.open(OUT_FILE);
     // print a b c s
-    cout << "Select vars:" << endl;
+    fout << "# abc" << endl;
     for (int i = 1; i <= N; i++) {
-        cout << glp_mip_col_val(lp, N + i)
+        fout << glp_mip_col_val(lp, N + i)
              << glp_mip_col_val(lp, 2 * N + i)
              << glp_mip_col_val(lp, 3 * N + i) << endl;
     }
-#if 0
-    cout << "e" << endl;
+    fout << "# e" << endl;
     for (int i = 1; i <= N; i++) {
-        cout << glp_mip_col_val(lp, i) << " ";
+        fout << glp_mip_col_val(lp, i) << " ";
     }
-    cout << endl;
-#endif
+    fout << endl;
+    fout << "# Z11 Z12 .. Z21 Z22 .." << endl;
+    for (int i = 1; i <= N; i++) {
+        for (int j = 1; j <= N; j++) {
+            fout << glp_mip_col_val(lp, 4 * N + N * (i - 1) + j) << " ";
+        }
+        fout << endl;
+    }
+    fout.close();
 
     glp_delete_prob(lp);
 }

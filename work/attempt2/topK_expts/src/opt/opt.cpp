@@ -11,7 +11,7 @@
 #define INF 999999
 #define MU 1.0f
 #define LAMBDA 1.0f
-#define COST_RECALIB 100.0f
+#define COST_RECALIB 10000000.0f
 #define COST_HOMO 100.0f
 
 using namespace std;
@@ -165,7 +165,7 @@ void solve() {
             ia[idx] = row_num; ja[idx] = i; ar[idx] = -1;
             idx ++;
             ia[idx] = row_num; ja[idx] = N + j; 
-            ar[idx] = E[i-1][j-1]/10000.0 + INF;
+            ar[idx] = E[i-1][j-1] + INF;
             idx ++;
             ia[idx] = row_num; ja[idx] = 4 * N + N * (i - 1) + j;
             ar[idx] = INF;
@@ -215,6 +215,7 @@ void readEFile(const char *fname) {
             } else {
                 E[i][j] = INF;
             }
+            E[i][j] = E[i][j] / 10000.0f;
         }
     }
     fin.close();

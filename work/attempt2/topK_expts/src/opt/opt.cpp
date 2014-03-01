@@ -11,7 +11,7 @@
 #define ACT_N 285
 #define N 10
 #define K 5
-#define INF 999999
+#define INF 9999.0
 #define MU 1.0f
 #define LAMBDA 1.0f
 #define COST_RECALIB 1000.0f
@@ -96,10 +96,10 @@ void solve() {
      * sum_i {a_i} <= K (1)
      * sum_j { Z_{ij} } = 1  forall i (N)
      * Z_ij <= a_j forall i,j (N * N)
+     * e_i >= E_ij * a_j + (-INF)... forall i (N^2)
      * sum_j { Z2_{ij} } = 1  forall i (N)
      * Z2_ij <= a_j forall i,j (N * N)
-     * e_i >= E_ij * a_j + (-INF)... forall i (N^2)
-     * "                    (N^2)
+     * e_i ...                    (N^2)
      */
 
     int total_rows = N + 1 + 2 * (N + N * N) + 2 * (N * N);

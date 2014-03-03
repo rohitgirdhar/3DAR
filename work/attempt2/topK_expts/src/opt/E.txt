@@ -1,1 +1,1 @@
-../par/E.txt
+../../homos/par/E.txt

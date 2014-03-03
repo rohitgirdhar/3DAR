@@ -219,7 +219,6 @@ void solve() {
             idx ++;
             ia[idx] = row_num; ja[idx] = N + j; 
             ar[idx] = R[i-1][j-1] + INF;
-            cout << "Setting " << R[i-1][j-1] << endl;
             idx ++;
             ia[idx] = row_num; ja[idx] = 4 * N + N*N + N * (i - 1) + j;
             ar[idx] = INF;
@@ -289,7 +288,7 @@ void readEFile(const char *fname) {
             } else {
                 E[i][j] = INF;
             }
-            E[i][j] = E[i][j] / 100.0f;
+            E[i][j] = E[i][j];
         }
     }
     fin.close();
@@ -297,7 +296,6 @@ void readEFile(const char *fname) {
 
 void readRFile(const char *fname) {
     ifstream fin;
-    float scale = 10.0;
     double s;
     fin.open(fname);
     if (!fin) {
@@ -306,7 +304,7 @@ void readRFile(const char *fname) {
     for (int i = 0; i < ACT_N; i++) {
         for (int j = 0; j < ACT_N; j++) {
             fin >> R[i][j];
-            R[i][j] = R[i][j] * scale;
+            R[i][j] = R[i][j];
         }
     }
     fin.close();

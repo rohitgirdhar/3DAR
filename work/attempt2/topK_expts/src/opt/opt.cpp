@@ -14,14 +14,14 @@
 #define INF 9999.0
 #define MU 1.0f
 #define LAMBDA 1.0f
-#define COST_RECALIB 1000.0f
+#define COST_RECALIB 100.0f
 #define COST_HOMO 100.0f
 
 using namespace std;
 
 float E[ACT_N][ACT_N], R[ACT_N][ACT_N];
-//const int Na = 4 * N + 2 * (N * N + 2 * N * N + 4 * N * N);
-const int Na = 4 * N +  (N * N + 2 * N * N + 4 * N * N);
+const int Na = 4 * N + 2 * (N * N + 2 * N * N + 4 * N * N);
+//const int Na = 4 * N +  (N * N + 2 * N * N + 4 * N * N);
 int ia[Na], ja[Na];
 double ar[Na];
 
@@ -181,7 +181,7 @@ void solve() {
             row_num ++;
         }
     }
-   /* 
+    
     // sum_j { Z2_{ij} } = 1  forall i (N)
     for (int i = 1; i <= N; i++) {
         glp_set_row_name(lp, row_num, "limit-Z2");
@@ -219,6 +219,7 @@ void solve() {
             idx ++;
             ia[idx] = row_num; ja[idx] = N + j; 
             ar[idx] = R[i-1][j-1] + INF;
+            cout << "Setting " << R[i-1][j-1] << endl;
             idx ++;
             ia[idx] = row_num; ja[idx] = 4 * N + N*N + N * (i - 1) + j;
             ar[idx] = INF;
@@ -231,13 +232,16 @@ void solve() {
         }
     }
 
-*/
+
 
     glp_load_matrix(lp, Na-1, ia, ja, ar);
     glp_iocp param;
     glp_init_iocp(&param);
     param.presolve = GLP_ON;
     int err = glp_intopt(lp, &param);
+
+//    cout << "printing the problem data" << endl;
+//    glp_write_prob(lp, 0, "/dev/stdout");
 
     ofstream fout;
     fout.open(OUT_FILE);
@@ -293,6 +297,7 @@ void readEFile(const char *fname) {
 
 void readRFile(const char *fname) {
     ifstream fin;
+    float scale = 10.0;
     double s;
     fin.open(fname);
     if (!fin) {
@@ -301,6 +306,7 @@ void readRFile(const char *fname) {
     for (int i = 0; i < ACT_N; i++) {
         for (int j = 0; j < ACT_N; j++) {
             fin >> R[i][j];
+            R[i][j] = R[i][j] * scale;
         }
     }
     fin.close();

@@ -104,7 +104,7 @@ def computeError(i, j):
 def writeToFile(E, output_fname):
     f = open(output_fname, "w")
     for row in E:
-        for elt in i:
+        for elt in row:
             f.write('%f ', elt)
         f.write('\n')
     f.close()

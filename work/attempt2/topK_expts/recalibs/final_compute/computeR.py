@@ -7,7 +7,7 @@ import numpy as np
 ## rest scaled between 0 and scale
 
 N = 285
-scale = 100000
+scale = 1
 recalibs_dir = 'Recalibs/'
 recalib_prefix = 'recalib_'
 
@@ -37,7 +37,7 @@ for i in range(N):
         val = R[i][j]
         if val == -1:
             val = maxVal * 2
-        f.write(str((val * scale) / maxVal) + ' ')
+        f.write(str(val * scale) + ' ')
     f.write('\n')
 
 

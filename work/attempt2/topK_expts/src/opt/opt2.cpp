@@ -107,7 +107,7 @@ void solve() {
      * sum_j { Z2_{ij} } = 1  forall i (N)
      * Z2_ij <= a_j forall i,j (N * N)
      * e_i ...                    (N^2)
-     * AVG COST contraint
+     * AVG COST contraint (1)
      */
 
     int total_rows = 
@@ -119,7 +119,7 @@ void solve() {
     glp_add_rows(lp, total_rows);
     
     int row_num = 1;
-    int idx = 0;
+    int idx = 1;  // VERY IMPORTANT!! IF SET 0, FIRST CONSTT. MISSED!!!
     // a_i + b_i ... = 1
     for (int i = 1; i <= N; i++) {
         string rname = string("sum_") + itos(i);
@@ -260,6 +260,14 @@ void solve() {
     glp_init_iocp(&param);
     param.presolve = GLP_ON;
     int err = glp_intopt(lp, &param);
+
+// Debugged why first constraint was not being read!!!
+//    int ind[100] = {0};
+//    double vals[100] = {0};
+//    glp_get_mat_row(lp, 1, ind, vals); 
+//    for (int i = 0; i < 100; i++) {
+//        cout << ind[i] << "->" << vals[i] << endl;
+//    }
 
 //    cout << "printing the problem data" << endl;
 //    glp_write_prob(lp, 0, "/dev/stdout");

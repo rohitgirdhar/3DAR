@@ -21,7 +21,7 @@
 #define LAMBDA 0.1f
 #define COST_RECALIB 200.0f
 #define COST_HOMO 100.0f
-#define AVG_COST_LIMIT (300.0f / (N - K))
+#define AVG_COST_LIMIT (500.0f / (N - K))
 
 using namespace std;
 
@@ -261,6 +261,8 @@ void solve() {
     param.presolve = GLP_ON;
     int err = glp_intopt(lp, &param);
 
+//    glp_write_lp(lp, NULL, "cplex.txt");
+
 // Debugged why first constraint was not being read!!!
 //    int ind[100] = {0};
 //    double vals[100] = {0};
@@ -274,6 +276,9 @@ void solve() {
 
     ofstream fout;
     fout.open(OUT_FILE);
+    //print the objective 
+    fout << "# obj value" << endl;
+    fout << glp_mip_obj_val(lp) << endl;
     // print a b c s
     fout << "# abc" << endl;
     for (int i = 1; i <= N; i++) {

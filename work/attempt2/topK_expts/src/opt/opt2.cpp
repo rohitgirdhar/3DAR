@@ -14,14 +14,15 @@
 #define R_FILE "R.txt"
 #define OUT_FILE "output.txt"
 #define ACT_N 285
-#define N 5
-#define K 2
+#define N 10
+#define K 3
 #define INF 9999.0
 #define MU 0.1f
 #define LAMBDA 0.1f
-#define COST_RECALIB 200.0f
+#define COST_RECALIB 150.0f
 #define COST_HOMO 100.0f
-#define AVG_COST_LIMIT (500.0f / (N - K))
+#define TOTAL_COST_LIMIT 850.0f
+#define AVG_COST_LIMIT (TOTAL_COST_LIMIT / (N - K))
 
 using namespace std;
 
@@ -46,7 +47,8 @@ string ctos(char a) {
 void solve() {
     glp_prob *lp;
     lp = glp_create_prob();
-    glp_set_prob_name(lp, "top-K");
+    string prob_name = "top_K_" + itos(N) + "_" + itos(K) + "_" + itos(TOTAL_COST_LIMIT);
+    glp_set_prob_name(lp, prob_name.c_str());
     glp_set_obj_dir(lp, GLP_MIN);
 
     /**
@@ -259,9 +261,11 @@ void solve() {
     glp_iocp param;
     glp_init_iocp(&param);
     param.presolve = GLP_ON;
-    int err = glp_intopt(lp, &param);
+    string path = "cplex_files/" + prob_name + ".cplex";
+    glp_write_lp(lp, NULL, path.c_str());
+    //int err = glp_intopt(lp, &param);
+    
 
-//    glp_write_lp(lp, NULL, "cplex.txt");
 
 // Debugged why first constraint was not being read!!!
 //    int ind[100] = {0};

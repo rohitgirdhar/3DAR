@@ -12,9 +12,9 @@
 #define N 10
 #define K 5
 #define INF 9999.0
-#define MU 1.0f
-#define LAMBDA 1.0f
-#define COST_RECALIB 100.0f
+#define MU 0.1f
+#define LAMBDA 0.1f
+#define COST_RECALIB 200.0f
 #define COST_HOMO 100.0f
 
 using namespace std;

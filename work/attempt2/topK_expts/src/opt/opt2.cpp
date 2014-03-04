@@ -14,15 +14,17 @@
 #define R_FILE "R.txt"
 #define OUT_FILE "output.txt"
 #define ACT_N 285
-#define N 10
-#define K 3
-#define INF 9999.0
+#define N 50
+#define K 10
 #define MU 0.1f
 #define LAMBDA 0.1f
 #define COST_RECALIB 150.0f
 #define COST_HOMO 100.0f
-#define TOTAL_COST_LIMIT 850.0f
+#define TOTAL_COST_LIMIT 5000.0
 #define AVG_COST_LIMIT (TOTAL_COST_LIMIT / (N - K))
+
+double MAX = 99999.0;
+double INF = 2 * MAX;
 
 using namespace std;
 
@@ -89,7 +91,7 @@ void solve() {
         for (int i = 1; i <= N; i++) {
             for (int j = 1; j <= N; j++) {
                 string vname = string("Z") + itos(z) + string("_")
-                    + itos(i) + string(":") + itos(j);
+                    + itos(i) + string("_") + itos(j);
                 glp_set_col_name(lp, col_num, vname.c_str());
                 glp_set_obj_coef(lp, col_num, 0.0f);
                 glp_set_col_kind(lp, col_num, GLP_BV);
@@ -328,6 +330,9 @@ void readEFile(const char *fname) {
                 E[i][j] = INF;
             }
             E[i][j] = E[i][j];
+            if (E[i][j] > MAX) {
+                E[i][j] = MAX;
+            }
         }
     }
     fin.close();
@@ -343,7 +348,9 @@ void readRFile(const char *fname) {
     for (int i = 0; i < ACT_N; i++) {
         for (int j = 0; j < ACT_N; j++) {
             fin >> R[i][j];
-            R[i][j] = R[i][j];
+            if (R[i][j] > MAX) {
+                R[i][j] = MAX;
+            }
         }
     }
     fin.close();
@@ -354,5 +361,6 @@ int main() {
     cout << "Read E File" << endl;
     readRFile(R_FILE);
     cout << "Read R file" << endl;
+    INF = 10 * MAX;
     solve();
 }

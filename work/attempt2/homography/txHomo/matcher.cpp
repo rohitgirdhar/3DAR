@@ -6,7 +6,7 @@
 #include "opencv2/nonfree/features2d.hpp"
 #include "opencv2/opencv.hpp"
 
-#define GEO_VERIFY 0
+#define GEO_VERIFY 1
 
 using namespace cv;
 using namespace std;
@@ -81,6 +81,8 @@ int main( int argc, char** argv )
 //  printf("-- Max dist : %f \n", max_dist );
 //  printf("-- Min dist : %f \n", min_dist );
 #if GEO_VERIFY 
+  cout << "Doing GEOMETRIC VERIFICATION" << endl;
+  good_matches.clear();
   vector<uchar> inliers;
   vector<Point2f> pts1, pts2;
   for (int i = 0; i < matches.size(); i++) {

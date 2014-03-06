@@ -55,7 +55,10 @@ int main( int argc, char** argv )
     scene.push_back( txPoint(Point2f(x, y)) );
   }
 
+//  Mat H = findHomography( obj, scene, 0 );
+//  cout << "CAUTION!!: Homography without RANSAC" << endl;
   Mat H = findHomography( obj, scene, RANSAC );
+  cout << "Using ransac in homography" << endl;
 
   Mat Ktx;
   warpPerspective(K, Ktx, H, Size(K.cols, K.rows));

@@ -11,7 +11,7 @@ def merge(overlay, orig):
     res = []
     for i in range(orig.shape[0]):
         for j in range(orig.shape[1]):
-            if np.linalg.norm(overlay[i][j]) > 10:
+            if np.linalg.norm(overlay[i][j]) > 5:
                 orig[i][j] = overlay[i][j]
     return orig
     

@@ -20,7 +20,7 @@ using namespace std;
 using namespace cv;
 
 string OBJ_FILE("../../../BobReconst/3DModels/cap_aligned.obj");
-string OBJ_FILE_CUR("../../homography/render/3dmodel/empty.obj");
+string OBJ_FILE_CUR("/home/rohit/work/project/07_3DAR/work/attempt2/homography/render/3dmodel/empty.obj");
 
 Mat snapshot(const char*);
 void mergeImgs(Mat&, Mat, Mat);

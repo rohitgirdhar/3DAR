@@ -8,7 +8,12 @@ N = 285;
 Iidx = sprintf('%08d', img_idx);
 for j = 0 : N-1
         Pidx = sprintf('%08d', j);
-        err = computeRecalibError(Iidx, Pidx);
+        try
+            err = computeRecalibError(Iidx, Pidx);
+        catch
+            disp('Error in computing recalib error. Setting to NaN');
+            err = NaN;
+        end
         f = fopen(OUTF, 'a');
         fprintf(f, '%f\n', err);
         fclose(f);

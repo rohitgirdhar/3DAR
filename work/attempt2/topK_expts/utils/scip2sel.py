@@ -38,7 +38,6 @@ def scipParser(inp):
             if temp[0][0] in b: 
                 b[temp[0][0]].append(temp[0][1])
     f.close()
-    print a, '\n', b, '\n', c
 
 def display():
     for i in range(1, N+1):

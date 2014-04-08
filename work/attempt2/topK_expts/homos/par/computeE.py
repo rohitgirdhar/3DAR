@@ -5,16 +5,16 @@ import numpy as np
 import pickle
 import gc
 import multiprocessing as mp
-import os
+import os, sys
 
-IMAGES_DIR = 'Images_dir/Images_sc/'
-HOMOGRAPHIES_DIR = 'Homographies/Homographies_sc/'
-NVM_FILE = 'NVM_Files/dense_sc.nvm'
-N = 285
-START_LINE_NO = 290
+IMAGES_DIR = 'Images_dir/Images_bob/'
+HOMOGRAPHIES_DIR = 'Homographies/Homographies_bob/'
+NVM_FILE = 'NVM_Files/dense_bob.nvm'
+N = 96
+START_LINE_NO = 101 # line with #points (and then the points)
 WIDTH = 1024.0
 HEIGHT = 768.0
-OUTPUT_FILE = 'E.txt'
+OUTPUT_FILE = 'E_bob.txt'
 
 Homos = {}
 def readHomos():
@@ -73,7 +73,8 @@ def E_computer(tup):
     err = computeError(i,j)
     lock.acquire()
     fback = open('process.txt', 'a')
-    fback.write(str(i) + " " + str(j) + " " + str(E[i][j]) + "\n")
+    fback.write(str(i) + " " + str(j) + " " + str(err) + "\n")
+    sys.stdout.write(str(i) + " " + str(j) + " " + str(err) + "\n")
     fback.close()
     lock.release()
     gc.collect()
@@ -144,9 +145,9 @@ if (0):
     f.close()
 else:
     computeE()
-    f = open('saveE', 'wb')
-    pickle.dump(E, f)
-    f.close()
+#    f = open('saveE', 'wb')
+#    pickle.dump(E, f)
+#    f.close()
     E = readToE('process.txt')
 writeToFile(E, OUTPUT_FILE)
 #print kpts

@@ -47,7 +47,7 @@ def main():
             print 's'
         else:
             print 'h',
-            print int(match[0][i])
+            print int(match[0][i]) + 1 # to make it 1 indexed
 
 if __name__ == '__main__':
     main()

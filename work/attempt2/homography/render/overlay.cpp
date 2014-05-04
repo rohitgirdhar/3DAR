@@ -17,9 +17,10 @@
 #include <string>
 
 //#define OBJ_FILE "../../../charminar_obj/augments/charminar_aligned_augment1.obj"
-#define OBJ_FILE "../../../vitallaObj/final_aligned/aligned_top.obj"
-//#define OBJ_FILE_CUR "3dmodel/empty.obj"
-#define OBJ_FILE_CUR "../../../vitallaObj/final_aligned/aligned_body.obj"
+//#define OBJ_FILE "../../../vitallaObj/final_aligned/aligned_top.obj"
+#define OBJ_FILE "../../../BobReconst/3DModels/cap_aligned.obj"
+#define OBJ_FILE_CUR "3dmodel/empty.obj"
+//#define OBJ_FILE_CUR "../../../vitallaObj/final_aligned/aligned_body.obj"
 
 
 using namespace std;
@@ -148,15 +149,6 @@ void drawScene() {
 
     glPopMatrix();
     
-    if (clickedCur) {
-        // i.e. at the last state
-        string f = "../../../charminar_model_2/dense.nvm.cmvs/00/visualize/" +
-            src_img + ".jpg";
-        Mat I = imread(f);
-        mergeImgs(I, snap, cur);
-        imwrite("result.jpg", I);
-    }
-
     if (!clickedCur) {
         glutPostRedisplay();
         clickedCur = true;

@@ -2,22 +2,16 @@
 
 import numpy as np
 import sys
+import argparse
 
-if len(sys.argv) < 2:
-    print 'usage : ./a.out error_fpath K'
-    sys.exit(0)
-
-error_file = sys.argv[1]
-K = int(sys.argv[2])
 inf = 99999999
 
-def selectGreedily(E):
+def selectGreedily(E, K, useMax):
     N = np.shape(E)[0]
     selected = np.zeros([1,N])
     err = np.empty([1, N])
     err[:] = inf
     match = np.empty([1,N])
-    global K
     while K:
         maxdiff = 0
         maxdiff_i = 0
@@ -27,7 +21,10 @@ def selectGreedily(E):
             diff = 0
             for j in range(N):
                 if (err[0][j] > E[i][j]).all():
-                    diff += err[0][j] - E[i][j]
+                    if useMax:
+                        diff = max(diff, err[0][j] - E[i][j])
+                    else:
+                        diff += err[0][j] - E[i][j]
             if diff > maxdiff:
                 maxdiff = diff
                 maxdiff_i = i
@@ -40,8 +37,19 @@ def selectGreedily(E):
     return selected,match
 
 def main():
+
+    parser = argparse.ArgumentParser(description='Greedy aprox to top-K optimization')
+    parser.add_argument('-f', '--fname', nargs=1, required=True, help='Error Filename')
+    parser.add_argument('-K', nargs=1, type=int, required=True, help='Size of K set')
+    parser.add_argument('--max', action='store_const', const=True, help='Use the max instead of sum')
+
+    args = parser.parse_args()
+    
+    error_file = args.fname[0]
+    K = args.K[0]
+
     E = np.genfromtxt(error_file, dtype=float, delimiter=' ')
-    sel,match = selectGreedily(E)
+    sel,match = selectGreedily(E, K, args.max)
     for i in range(np.shape(E)[0]):
         if sel[0][i]:
             print 's'

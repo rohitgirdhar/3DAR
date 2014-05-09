@@ -14,7 +14,10 @@ N = 96
 START_LINE_NO = 101 # line with #points (and then the points)
 WIDTH = 1024.0
 HEIGHT = 768.0
-OUTPUT_FILE = 'E_bob.txt'
+OUTPUT_FILE = 'E_bob_norm.txt'
+method = 'norm'     # can be 'avg' or 'norm'. avg means the error value is the average distance
+                    # and 'norm' is #of 3D points within radius error. norm will actually give a similarity matrix (not error)
+RADIUS = 20.0 # in this pixel radius; used only if method == norm
 
 Homos = {}
 def readHomos():
@@ -61,9 +64,9 @@ def readNVMFile():
 def computeE():
     l = []
     for i in range(N):
-        for j in range(i+1, N):
+        for j in range(i, N):
             l.append( (i,j) )
-    pool = mp.Pool(2)
+    pool = mp.Pool(4)
     pool.map(E_computer, l)
 
 lock = mp.Lock()
@@ -87,25 +90,37 @@ def intersect(a, b):
     return list(set(a) & set(b))
 
 def computeError(i, j):
+    if i == j:
+        if method == 'avg':
+            return 0.0
+        elif method == 'norm':
+            return 1.0
+        else:
+            return float('inf')
+
     ## reconstructing i with j
     H = computeHomography(j, i) # j -> i
     if H == None:
         return float('inf')
     commonPts = intersect(kpts[i].keys(), kpts[j].keys())
-    if len(commonPts) == 0:
+    n_commonPts = len(commonPts)
+    if n_commonPts == 0:
         return float('inf')
     all_pts = []
     for pt in commonPts:
         all_pts.append(kpts[j][pt])
     all_pts = cv2.perspectiveTransform(
-            np.array(all_pts, dtype='float32').reshape(1, -1, 2),
+            np.array([all_pts], dtype='float32'),
             H)
     d = 0.0
-    idx = 0
-    for pt in all_pts:
-        d += cv2.norm(pt - kpts[i][commonPts[idx]])
-        idx += 1
-    return d / len(commonPts)
+    for idx in range(n_commonPts):
+        dist = cv2.norm(all_pts[0][idx][:] - kpts[i][commonPts[idx]])
+        if method == 'norm':
+            if dist < RADIUS:
+                d += 1.0
+        else:
+            d += dist
+    return d / n_commonPts
 
 def readToE(fname):
     f = open(fname)

@@ -1,5 +1,5 @@
 #!/usr/bin/python2.7
-# Eg usage: python selectGreedy.py -f E_bob.txt -o results/res_40_max.txt -K 40 --max
+# Eg usage: python selectGreedy.py -f E_bob.txt -o results/res_40_max.txt -K 40 --max -n E_bob_norm.txt
 
 import numpy as np
 import sys
@@ -52,14 +52,17 @@ def main():
     parser.add_argument('-f', '--fname', nargs=1, required=True, help='Input Error Filename')
     parser.add_argument('-o', '--output-fname', nargs=1, required=True, help='Output Filename')
     parser.add_argument('-n', nargs=1, required=False, 
-            help='norms file path. Array file, similar to -f, only with norms')
+            help="""
+            norms file path. Array file, similar to -f, only with norms of similarity 
+            i.e., E[i][j] = #of 3D points that match in i & j (within a given radius) / total # of points
+            """)
     parser.add_argument('-K', nargs=1, type=int, required=True, help='Size of K set')
     parser.add_argument('--max', action='store_const', const=True, help='Use the max instead of sum')
 
     args = parser.parse_args()
     
     error_file = args.fname[0]
-    norms_file = args.n[0]
+    norms_file = args.n[0] if args.n else None
     K = args.K[0]
     output_fname = args.output_fname[0]
 

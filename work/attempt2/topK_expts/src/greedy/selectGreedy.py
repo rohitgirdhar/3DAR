@@ -40,7 +40,7 @@ def selectGreedily(E, K, useMax, test_ids):
                 err[0][i] = E[maxdiff_i][i]
                 match[0][i] = maxdiff_i
         K -= 1
-    return selected,match,sum(err[0][:])
+    return selected,match,err[0][test_ids]
 
 def selectRandom(E, K, test_ids):
     N = np.shape(E)[0]
@@ -64,18 +64,16 @@ def selectRandom(E, K, test_ids):
                 err[0][i] = E[maxdiff_i][i]
                 match[0][i] = maxdiff_i
         K -= 1
-    return selected,match,sum(err[0][:])
-
-
+    return selected,match,err[0][test_ids]
 
 # norms_file: input file, like E[][]
 # match : the match vector obtained above
 def findNormedError(norms_fpath, match, test_ids):
     norms = np.genfromtxt(norms_fpath, dtype=float, delimiter=' ')
-    res = 0
+    res = []
     for i in test_ids:
-        res += norms[i][match[0][i]]
-    return res / len(test_ids)
+        res.append(norms[i][match[0][i]])
+    return (sum(res) / len(test_ids)),res
 
 def main():
 
@@ -94,6 +92,11 @@ def main():
             action='store_const', 
             const=True, 
             help='Randomly select elements instead of by greedy')
+    parser.add_argument('-v', 
+            '--verbose', 
+            action='store_const',
+            const=True,
+            help='Print individual errors, similarities')
 
     args = parser.parse_args()
     
@@ -107,9 +110,10 @@ def main():
 
     E = np.genfromtxt(error_file, dtype=float, delimiter=' ')
     if args.select_random:
-        sel,match,tot_err=selectRandom(E, K, test_ids)
+        sel,match,ind_errs = selectRandom(E, K, test_ids)
     else:
-        sel,match,tot_err = selectGreedily(E, K, args.max, test_ids)
+        sel,match,ind_errs = selectGreedily(E, K, args.max, test_ids)
+    tot_err = sum(ind_errs)
 
     f = open(output_fname, 'w')
     for i in range(np.shape(E)[0]):
@@ -124,7 +128,13 @@ def main():
 
     if norms_file:
 #        print 'Similarity Norm', 
-        print findNormedError(norms_file, match, test_ids)
-
+        sim,individual_sims = findNormedError(norms_file, match, test_ids)
+        print sim
+        if args.verbose:
+            print 'Individual Sim Values'
+            print '\n'.join(map(str, individual_sims))
+    if args.verbose:
+        print 'Individual Reproj error values'
+        print '\n'.join(map(str,ind_errs))
 if __name__ == '__main__':
     main()

@@ -4,6 +4,7 @@
 import numpy as np
 import sys
 import argparse
+import random
 
 inf = 99999999
 
@@ -41,6 +42,32 @@ def selectGreedily(E, K, useMax, test_ids):
         K -= 1
     return selected,match,sum(err[0][:])
 
+def selectRandom(E, K, test_ids):
+    N = np.shape(E)[0]
+    selected = np.zeros([1,N])
+    err = np.empty([1, N])
+    err[:] = inf
+    match = np.empty([1,N])
+    while K:
+        maxdiff_i = 0
+        while True:
+            i = random.randint(0, N-1)
+            if i in test_ids:
+                continue
+            if selected[0][i]:
+                continue
+            maxdiff_i = i
+            break
+        selected[0][maxdiff_i] = 1
+        for i in range(N):
+            if err[0][i] > E[maxdiff_i][i]:
+                err[0][i] = E[maxdiff_i][i]
+                match[0][i] = maxdiff_i
+        K -= 1
+    return selected,match,sum(err[0][:])
+
+
+
 # norms_file: input file, like E[][]
 # match : the match vector obtained above
 def findNormedError(norms_fpath, match, test_ids):
@@ -63,6 +90,10 @@ def main():
     parser.add_argument('-t', nargs=1, required=True, type=str, help='File with Test image IDs')
     parser.add_argument('-K', nargs=1, type=int, required=True, help='Size of K set')
     parser.add_argument('--max', action='store_const', const=True, help='Use the max instead of sum')
+    parser.add_argument('--select-random', 
+            action='store_const', 
+            const=True, 
+            help='Randomly select elements instead of by greedy')
 
     args = parser.parse_args()
     
@@ -75,7 +106,11 @@ def main():
     test_ids = map(int, test_ids_file.readlines())
 
     E = np.genfromtxt(error_file, dtype=float, delimiter=' ')
-    sel,match,tot_err = selectGreedily(E, K, args.max, test_ids)
+    if args.select_random:
+        sel,match,tot_err=selectRandom(E, K, test_ids)
+    else:
+        sel,match,tot_err = selectGreedily(E, K, args.max, test_ids)
+
     f = open(output_fname, 'w')
     for i in range(np.shape(E)[0]):
         if sel[0][i]:
@@ -84,10 +119,12 @@ def main():
             print >> f, 'h',
             print >> f, int(match[0][i]) + 1 # to make it 1 indexed
     f.close()
-    print 'Total Error', tot_err
+#    print 'Total Error', 
+    print tot_err,
 
     if norms_file:
-        print 'Similarity Norm', findNormedError(norms_file, match, test_ids)
+#        print 'Similarity Norm', 
+        print findNormedError(norms_file, match, test_ids)
 
 if __name__ == '__main__':
     main()

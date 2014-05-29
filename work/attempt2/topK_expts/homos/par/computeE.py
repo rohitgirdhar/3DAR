@@ -114,7 +114,7 @@ def computeError(i, j):
             H)
     d = 0.0
     for idx in range(n_commonPts):
-        dist = cv2.norm(all_pts[0][idx][:] - kpts[i][commonPts[idx]])
+        dist = cv2.norm(all_pts[0][idx][:], kpts[i][commonPts[idx]], cv2.NORM_L2)
         if method == 'norm':
             if dist < RADIUS:
                 d += 1.0

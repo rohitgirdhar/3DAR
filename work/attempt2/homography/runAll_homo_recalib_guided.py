@@ -9,7 +9,8 @@ ptcorr_dir_path = '../../BobReconst/ptcorrs/'
 model_3d = '../../BobReconst/3DModels/cap_aligned.obj'
 resultsdir = '~/work/project/07_3DAR/work/attempt2/homography/results/'
 #guide_file = '../topK_expts/src/opt/results/res_bob_96_60_1000.sel'
-guide_file = '../topK_expts/src/greedy/res.txt'
+guide_file = '../topK_expts/src/greedy/results/res_50.txt'
+query_imgs_file = '../topK_expts/src/greedy/test_set' # optional
 
 ## GUIDE FILE FORMAT
 # [s/r/h] <id>
@@ -24,7 +25,13 @@ import time
 f = open(guide_file)
 lines = f.readlines()
 
-for i in range(N):
+try:
+    f = open(query_imgs_file)
+    qimgs = map(int, f.readlines())
+except:
+    qimgs = range(N)
+
+for i in qimgs:
 
     match = 0
     line = lines[i].split()

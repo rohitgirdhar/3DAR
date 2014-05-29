@@ -7,7 +7,7 @@ import argparse
 
 inf = 99999999
 
-def selectGreedily(E, K, useMax):
+def selectGreedily(E, K, useMax, test_ids):
     N = np.shape(E)[0]
     selected = np.zeros([1,N])
     err = np.empty([1, N])
@@ -17,10 +17,14 @@ def selectGreedily(E, K, useMax):
         maxdiff = 0
         maxdiff_i = 0
         for i in range(N):
+            if i in test_ids:
+                continue
             if selected[0][i]:
                 continue
             diff = 0
             for j in range(N):
+                if j in test_ids:
+                    continue
                 if (err[0][j] > E[i][j]).all():
                     if useMax:
                         diff = max(diff, err[0][j] - E[i][j])
@@ -39,12 +43,12 @@ def selectGreedily(E, K, useMax):
 
 # norms_file: input file, like E[][]
 # match : the match vector obtained above
-def findNormedError(norms_fpath, match):
+def findNormedError(norms_fpath, match, test_ids):
     norms = np.genfromtxt(norms_fpath, dtype=float, delimiter=' ')
     res = 0
-    for i in range(np.shape(match)[1]):
+    for i in test_ids:
         res += norms[i][match[0][i]]
-    return res / np.shape(match)[1]
+    return res / len(test_ids)
 
 def main():
 
@@ -56,6 +60,7 @@ def main():
             norms file path. Array file, similar to -f, only with norms of similarity 
             i.e., E[i][j] = #of 3D points that match in i & j (within a given radius) / total # of points
             """)
+    parser.add_argument('-t', nargs=1, required=True, type=str, help='File with Test image IDs')
     parser.add_argument('-K', nargs=1, type=int, required=True, help='Size of K set')
     parser.add_argument('--max', action='store_const', const=True, help='Use the max instead of sum')
 
@@ -66,8 +71,11 @@ def main():
     K = args.K[0]
     output_fname = args.output_fname[0]
 
+    test_ids_file = open(args.t[0])
+    test_ids = map(int, test_ids_file.readlines())
+
     E = np.genfromtxt(error_file, dtype=float, delimiter=' ')
-    sel,match,tot_err = selectGreedily(E, K, args.max)
+    sel,match,tot_err = selectGreedily(E, K, args.max, test_ids)
     f = open(output_fname, 'w')
     for i in range(np.shape(E)[0]):
         if sel[0][i]:
@@ -79,7 +87,7 @@ def main():
     print 'Total Error', tot_err
 
     if norms_file:
-        print 'Similarity Norm', findNormedError(norms_file, match)
+        print 'Similarity Norm', findNormedError(norms_file, match, test_ids)
 
 if __name__ == '__main__':
     main()

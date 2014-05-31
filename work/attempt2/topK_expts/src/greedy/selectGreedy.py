@@ -123,8 +123,8 @@ def main():
             print >> f, 'h',
             print >> f, int(match[0][i]) + 1 # to make it 1 indexed
     f.close()
-#    print 'Total Error', 
-    print tot_err,
+#    print 'Avg Reconst Error', 
+    print tot_err / len(ind_errs), # Print avg reconst error
 
     if norms_file:
 #        print 'Similarity Norm', 

@@ -7,15 +7,14 @@ import gc
 import multiprocessing as mp
 import os, sys
 
-IMAGES_DIR = 'Images_dir/Images_bob/'
 HOMOGRAPHIES_DIR = 'Homographies/Homographies_bob/'
 NVM_FILE = 'NVM_Files/dense_bob.nvm'
 N = 96
-START_LINE_NO = 101 # line with #points (and then the points)
+START_LINE_NO = N + 5 # line with #points (and then the points)
 WIDTH = 1024.0
 HEIGHT = 768.0
-OUTPUT_FILE = 'E_bob_norm.txt'
-method = 'norm'     # can be 'avg' or 'norm'. avg means the error value is the average distance
+OUTPUT_FILE = 'E_bob.txt'
+method = 'avg'     # can be 'avg' or 'norm'. avg means the error value is the average distance
                     # and 'norm' is #of 3D points within radius error. norm will actually give a similarity matrix (not error)
 RADIUS = 20.0 # in this pixel radius; used only if method == norm
 
@@ -64,7 +63,7 @@ def readNVMFile():
 def computeE():
     l = []
     for i in range(N):
-        for j in range(i, N):
+        for j in range(N):
             l.append( (i,j) )
     pool = mp.Pool(4)
     pool.map(E_computer, l)
@@ -128,7 +127,7 @@ def readToE(fname):
     for line in f.readlines():
         elts = line.split()
         E[int(elts[0])][int(elts[1])] = float(elts[2])
-        E[int(elts[1])][int(elts[0])] = float(elts[2])
+#        E[int(elts[1])][int(elts[0])] = float(elts[2])
     f.close()
     return E
 

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ using namespace std;
  */
 void
 readKptsFromNVM(string fpath,
-        map<int, map<int, pair<float,float>>> &img2pts) {
+        map<int, map<int, cv::Point2f>> &img2pts) {
     ifstream fin(fpath.c_str());
     string line;
     getline(fin, line); getline(fin, line); // ignore
@@ -37,9 +38,9 @@ readKptsFromNVM(string fpath,
             float x, y;
             fin >> img_idx >> temp >> x >> y;
             if (img2pts.count(img_idx) <= 0) {
-                img2pts[img_idx] = map<int, pair<float,float>>();
+                img2pts[img_idx] = map<int, cv::Point2f>();
             }
-            img2pts[img_idx][ftrID] = make_pair(x,y);
+            img2pts[img_idx][ftrID] = cv::Point2f(x,y);
         }
     }
     fin.close();

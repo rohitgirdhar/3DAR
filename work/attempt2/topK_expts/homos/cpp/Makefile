@@ -1,5 +1,5 @@
 CXX += -std=c++0x
-CXXFLAGS += -O2 `pkg-config --cflags opencv`
+CXXFLAGS += -O2 `pkg-config --cflags opencv` -g
 INC += -I${BOOST_ROOT}
 LIBS += -L/usr/local/lib `pkg-config --libs opencv`
 LDFLAGS=-lboost_program_options -lboost_filesystem -lboost_system

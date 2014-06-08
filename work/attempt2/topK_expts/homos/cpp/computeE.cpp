@@ -65,7 +65,8 @@ void computeE(map<int, map<int, cv::Point2f>> &img2pts,
         double E[][MAX_N]) {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            E[i][j] = getErr(img2pts[i], img2pts[j], homos[i][j]);
+            // when ith image is approx by jth image (hence the indices)
+            E[i][j] = getErr(img2pts[j], img2pts[i], homos[j][i]);
         }
         cout << "done " << i << endl;
     }
@@ -97,8 +98,10 @@ int main(int argc, char* argv[]) {
         ("help", "Show this help message")
         ("nvm-file,f", po::value<string>()->required(), "input NVM fpath")
         ("output-fname,o", po::value<string>()->required(), "output fpath")
-        ("homos-dir,h", po::value<string>()->required(), "input homographies dir path")
+        ("homos-dir,d", po::value<string>()->required(), "input homographies dir path")
         ("num-imgs,n", po::value<int>()->required(), "total number of images")
+        ("ht,h", po::value<int>()->required(), "height of each image")
+        ("wd,w", po::value<int>()->required(), "width of each image")
         ;
     po::variables_map vm;
     try {
@@ -114,7 +117,10 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    readKptsFromNVM(vm["nvm-file"].as<string>(), img2pts);
+    readKptsFromNVM(vm["nvm-file"].as<string>(),
+            vm["ht"].as<int>(),
+            vm["wd"].as<int>(),
+            img2pts);
     cout << "Read kpts" << endl;
     int N = vm["num-imgs"].as<int>();
     readAllHomos(N,

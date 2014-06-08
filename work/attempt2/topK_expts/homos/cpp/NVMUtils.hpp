@@ -15,6 +15,7 @@ using namespace std;
  */
 void
 readKptsFromNVM(string fpath,
+        int ht, int wd,
         map<int, map<int, cv::Point2f>> &img2pts) {
     ifstream fin(fpath.c_str());
     string line;
@@ -40,7 +41,7 @@ readKptsFromNVM(string fpath,
             if (img2pts.count(img_idx) <= 0) {
                 img2pts[img_idx] = map<int, cv::Point2f>();
             }
-            img2pts[img_idx][ftrID] = cv::Point2f(x,y);
+            img2pts[img_idx][ftrID] = cv::Point2f(x + wd / 2.0, y + ht / 2.0);
         }
     }
     fin.close();

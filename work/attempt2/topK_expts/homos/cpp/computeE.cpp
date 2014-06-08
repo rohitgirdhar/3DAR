@@ -66,9 +66,25 @@ void computeE(map<int, map<int, cv::Point2f>> &img2pts,
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             E[i][j] = getErr(img2pts[i], img2pts[j], homos[i][j]);
-            cout << i << " " << j << " " << E[i][j] << endl;
         }
+        cout << "done " << i << endl;
     }
+}
+
+void writeToFile(double E[][MAX_N], int N, string ofile) {
+    ofstream fout(ofile.c_str(), ios::out);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (E[i][j] == -1) {
+                fout << "inf";
+            } else {
+                fout << E[i][j];
+            }
+            fout << " ";
+        }
+        fout << endl;
+    }
+    fout.close();
 }
 
 map<int, map<int, cv::Point2f>> img2pts;
@@ -80,6 +96,7 @@ int main(int argc, char* argv[]) {
     desc.add_options()
         ("help", "Show this help message")
         ("nvm-file,f", po::value<string>()->required(), "input NVM fpath")
+        ("output-fname,o", po::value<string>()->required(), "output fpath")
         ("homos-dir,h", po::value<string>()->required(), "input homographies dir path")
         ("num-imgs,n", po::value<int>()->required(), "total number of images")
         ;
@@ -107,5 +124,6 @@ int main(int argc, char* argv[]) {
 
     computeE(img2pts, homos, N, E);
     cout << "computed E" << endl;
+    writeToFile(E, N, vm["output-fname"].as<string>());
     return 0;
 }

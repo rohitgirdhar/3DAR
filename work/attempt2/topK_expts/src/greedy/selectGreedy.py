@@ -36,8 +36,8 @@ def selectGreedily(E, K, useMax, test_ids):
                 maxdiff_i = i
         selected[0][maxdiff_i] = 1
         for i in range(N):
-            if err[0][i] > E[maxdiff_i][i]:
-                err[0][i] = E[maxdiff_i][i]
+            if err[0][i] > E[i][maxdiff_i]:
+                err[0][i] = E[i][maxdiff_i]
                 match[0][i] = maxdiff_i
         K -= 1
     return selected,match,err[0][test_ids]

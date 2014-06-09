@@ -26,11 +26,11 @@ def selectGreedily(E, K, useMax, test_ids):
             for j in range(N):
                 if j in test_ids:
                     continue
-                if (err[0][j] > E[i][j]).all():
+                if (err[0][j] > E[j][i]).all(): # E(j,i) gives the error in approx j by i
                     if useMax:
-                        diff = max(diff, err[0][j] - E[i][j])
+                        diff = max(diff, err[0][j] - E[j][i])
                     else:
-                        diff += err[0][j] - E[i][j]
+                        diff += err[0][j] - E[j][i]
             if diff > maxdiff:
                 maxdiff = diff
                 maxdiff_i = i
@@ -110,6 +110,7 @@ def main():
 
     E = np.genfromtxt(error_file, dtype=float, delimiter=' ')
     if args.select_random:
+        print 'selecting randomly'
         sel,match,ind_errs = selectRandom(E, K, test_ids)
     else:
         sel,match,ind_errs = selectGreedily(E, K, args.max, test_ids)

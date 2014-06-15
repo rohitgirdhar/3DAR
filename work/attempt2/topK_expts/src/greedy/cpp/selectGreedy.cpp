@@ -7,27 +7,36 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <sys/time.h>
+#include <ctime>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
+typedef unsigned long long uint64;
 
-#define MAX_N 1510
+#define MAX_N 2000
 #define INF 9999999999
 double E[MAX_N][MAX_N];
+uint64 GetTimeMs64();
 
 using namespace std;
 
 /**
  * @return N number of elements in complete set
  */
-int readE(string errfile, double E[][MAX_N]) {
+int readE(string errfile, double E[][MAX_N], int useN = MAX_N) {
+    if (useN != MAX_N) {
+        cerr << "Using useN = " << useN << endl;
+    }
     ifstream fin(errfile.c_str());
     string line;
     int lineno = 0;
     while (getline(fin, line)) {
+        if (lineno >= useN) break;
         istringstream iss(line);
         int col = 0;
         string val;
         while(iss >> val) {
+            if (col >= useN) break;
             if (val.compare("inf") == 0) {
                 E[lineno][col] = INF;
             } else {
@@ -108,6 +117,7 @@ int main(int argc, char* argv[]) {
         ("err-file,e", po::value<string>()->required(), "Input Error mat file")
         ("tests-file,t", po::value<string>()->required(), "file with test files list")
         ("num-select,K", po::value<int>()->required(), "Number of elements to select")
+        ("use-N,N", po::value<int>(), "Use only first NxN size submat from the mat file")
         ;
     po::variables_map vm;
     try {
@@ -117,8 +127,14 @@ int main(int argc, char* argv[]) {
         cerr << e.what() << endl;
         return -1;
     } 
+    int N;
+    if (vm.count("use-N") > 0) {
+        int useN = vm["use-N"].as<int>();
+        N = readE(vm["err-file"].as<string>(), E, useN);
+    } else {
+        N = readE(vm["err-file"].as<string>(), E);
+    }
     
-    int N = readE(vm["err-file"].as<string>(), E);
     vector<int> tests = readTest(vm["tests-file"].as<string>());
     sort(tests.begin(), tests.end());
     vector<int> train;
@@ -130,7 +146,49 @@ int main(int argc, char* argv[]) {
         }
     }
     int K = vm["num-select"].as<int>();
+    
+    uint64 start = GetTimeMs64(); 
     vector<bool> selected = selectGreedy(E, train, tests, K, N);
+    cerr << "time elapsed in greedy select: " << (GetTimeMs64() - start) / 1000.0 << "sec" << endl;
+
     cout << computeTestErr(E, train, tests, selected) << endl;
     return 0;
+}
+
+/* Returns the amount of milliseconds elapsed since the UNIX epoch. Works on both
+ * windows and linux. */
+
+uint64 GetTimeMs64()
+{
+#ifdef WIN32
+    /* Windows */
+    FILETIME ft;
+    LARGE_INTEGER li;
+
+    /* Get the amount of 100 nano seconds intervals elapsed since January 1, 1601 (UTC) and copy it
+     * to a LARGE_INTEGER structure. */
+    GetSystemTimeAsFileTime(&ft);
+    li.LowPart = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+
+    uint64 ret = li.QuadPart;
+    ret -= 116444736000000000LL; /* Convert from file time to UNIX epoch time. */
+    ret /= 10000; /* From 100 nano seconds (10^-7) to 1 millisecond (10^-3) intervals */
+
+    return ret;
+#else
+    /* Linux */
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    uint64 ret = tv.tv_usec;
+    /* Convert from micro seconds (10^-6) to milliseconds (10^-3) */
+    ret /= 1000;
+
+    /* Adds the seconds (10^0) after converting them to milliseconds (10^-3) */
+    ret += (tv.tv_sec * 1000);
+
+    return ret;
+#endif
 }

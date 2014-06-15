@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <sys/time.h>
 #include <ctime>
+#include <numeric>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 typedef unsigned long long uint64;
@@ -92,6 +93,7 @@ vector<bool> selectGreedy(double E[][MAX_N],
             }
         }
     }
+    cerr << "Train error : " << accumulate(errs.begin(), errs.end(), 0.0f) << endl;
     return selected;
 }
 

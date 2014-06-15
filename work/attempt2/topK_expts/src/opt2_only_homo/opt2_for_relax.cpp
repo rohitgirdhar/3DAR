@@ -10,10 +10,11 @@
 #include <iostream>
 #include <cstdlib>
 
-#define E_FILE "../../homos/par/E_bob.txt"
-#define ACT_N 96
-#define N 10
-#define K 5
+#define E_FILE "../../homos/cpp/E_sc_full.txt"
+#define OUTDIR "cplex/sc_full/"
+#define ACT_N 1505
+#define N 480
+#define K 350
 
 double MAX = 9999.0;
 double INF = 10 * MAX;
@@ -157,7 +158,7 @@ void writeMIP() {
     glp_iocp param;
     glp_init_iocp(&param);
     param.presolve = GLP_ON;
-    string path_cplex = "cplex_files_for_relax/" + prob_name + ".lp";
+    string path_cplex = OUTDIR + prob_name + ".lp";
     glp_write_lp(lp, NULL, path_cplex.c_str());
     
     glp_delete_prob(lp);

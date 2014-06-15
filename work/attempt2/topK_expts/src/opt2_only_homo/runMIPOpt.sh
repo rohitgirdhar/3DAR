@@ -3,12 +3,12 @@
 # converts to 0 indexed, in accordance greedy method
 
 if [ $# -lt 2 ]; then
-    echo 'Use ./prog <LP file path> <Img names (ordered)>'
+    echo 'Use ./prog <Img names (ordered)> <LP file path>'
     exit -1
 fi
 TMPFILE=`mktemp`
 TMPFILE2=`mktemp`
-printf "read ${1}\noptimize\ndisplay solution\n" > $TMPFILE
+printf "read ${2}\noptimize\ndisplay solution\n" > $TMPFILE
 lst=`~/optimization/scip-3.1.0.linux.x86_64.gnu.opt.spx < $TMPFILE | grep x_ | cut -d '_' -f2 | cut -d' ' -f1`
 for i in $lst; do
     num_re='^[0-9]+$'
@@ -16,6 +16,6 @@ for i in $lst; do
         echo `expr $i - 1` | cat >> $TMPFILE2
     fi
 done
-python translateImgIds.py $TMPFILE2 $2
+python translateImgIds.py $TMPFILE2 $1
 rm $TMPFILE
 rm $TMPFILE2

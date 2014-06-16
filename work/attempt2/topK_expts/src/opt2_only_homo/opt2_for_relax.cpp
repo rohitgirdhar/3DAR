@@ -14,7 +14,7 @@
 #define OUTDIR "cplex/sc_full/"
 #define ACT_N 1505
 #define N 480
-#define K 350
+#define K 130
 
 double MAX = 9999.0;
 double INF = 10 * MAX;

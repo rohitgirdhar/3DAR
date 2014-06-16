@@ -3,7 +3,7 @@
 # converts to 0 indexed, in accordance greedy method
 
 if [ $# -lt 2 ]; then
-    echo 'Use ./prog <Img names (ordered)> <LP file path>'
+    echo 'Use ./prog <Img names File> <LP file path>'
     exit -1
 fi
 TMPFILE=`mktemp`

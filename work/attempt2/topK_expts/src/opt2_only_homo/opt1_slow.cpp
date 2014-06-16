@@ -13,7 +13,7 @@
 #define E_FILE "../../homos/par/E_bob.txt"
 #define ACT_N 96
 #define N 10
-#define K 60
+#define K 7
 
 double MAX = 9999.0;
 double INF = 10 * MAX;

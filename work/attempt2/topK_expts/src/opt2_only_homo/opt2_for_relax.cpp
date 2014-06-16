@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iostream>
 #include <cstdlib>
+#include <set>
 
 #define E_FILE "../../homos/cpp/E_bob.txt"
 /* Define the following 2 only if you need to prevent test 
@@ -56,6 +57,18 @@ void writeMIP() {
     glp_set_prob_name(lp, prob_name.c_str());
     glp_set_obj_dir(lp, GLP_MIN);
 
+#ifdef TEST_IMG_IDXS_FILE
+    set<int> testset;
+    ifstream fin(TEST_IMG_IDXS_FILE);
+    string line;
+    while (getline(fin, line)) {
+        int id = stoi(line); // 0 indexed
+        testset.insert(id + 1); // 1 indexed
+    }
+    fin.close();
+#endif
+
+
     /**
      * Total variables (in order)
      *
@@ -71,6 +84,13 @@ void writeMIP() {
         glp_set_col_name(lp, col_num, vname.c_str());
         glp_set_col_bnds(lp, col_num, GLP_LO, 0.0f, INF);
         glp_set_obj_coef(lp, col_num, 1.0f);
+#ifdef TEST_IMG_IDXS_FILE 
+        /* to prevent test elements from affecting the optimal
+         * not doing this gives very good test results */
+        if (testset.count(i) > 0) {
+            glp_set_obj_coef(lp, col_num, 0.0f);
+        }
+#endif
         glp_set_col_kind(lp, col_num, GLP_CV);
         col_num ++;
     }
@@ -170,12 +190,10 @@ void writeMIP() {
     }
 
 #ifdef TEST_IMG_IDXS_FILE
-    ifstream fin(TEST_IMG_IDXS_FILE);
-    string line;
-    while (getline(fin, line)) {
-        int id = stoi(line); // 0 indexed
+    for (auto iter = testset.begin(); iter != testset.end(); ++iter) {
+        int id = *iter; // 1 indexed
         glp_set_row_bnds(lp, row_num, GLP_FX, 0, 0);
-        ia[idx] = row_num; ja[idx] = N + id + 1; ar[idx] = 1;
+        ia[idx] = row_num; ja[idx] = N + id; ar[idx] = 1;
 
         idx ++;
         row_num ++;

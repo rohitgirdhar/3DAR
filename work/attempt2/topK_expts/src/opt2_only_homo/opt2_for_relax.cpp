@@ -10,11 +10,17 @@
 #include <iostream>
 #include <cstdlib>
 
-#define E_FILE "../../homos/cpp/E_sc_full.txt"
-#define OUTDIR "cplex/sc_full/"
-#define ACT_N 1505
-#define N 480
-#define K 130
+#define E_FILE "../../homos/cpp/E_bob.txt"
+/* Define the following 2 only if you need to prevent test 
+ * elements from getting selected. note that the test set 
+ * must have elements only idx < N */
+#define TEST_IMG_IDXS_FILE "../greedy/test_set_bob.txt"
+#define NTEST 15
+
+#define OUTDIR "cplex/bob/"
+#define ACT_N 96
+#define N 96
+#define K 80
 
 double MAX = 9999.0;
 double INF = 10 * MAX;
@@ -22,7 +28,12 @@ double INF = 10 * MAX;
 using namespace std;
 
 float E[ACT_N][ACT_N];
-const int Na = N + 3 * (N * N) + (N + N * N);
+const int Na = N + 3 * (N * N) + (N + N * N)
+#ifdef TEST_IMG_IDXS_FILE
+    + NTEST + 1
+#endif
+;
+
 int ia[Na], ja[Na];
 double ar[Na];
 
@@ -92,9 +103,13 @@ void writeMIP() {
      */
 
     int total_rows = 
-        1 + 
-        (N + N * N) + 
-        N; 
+        1 
+        + (N + N * N)
+        + N
+#ifdef TEST_IMG_IDXS_FILE
+        + NTEST
+#endif
+        ;
     glp_add_rows(lp, total_rows);
     
     int row_num = 1;
@@ -153,6 +168,20 @@ void writeMIP() {
 
         row_num ++;
     }
+
+#ifdef TEST_IMG_IDXS_FILE
+    ifstream fin(TEST_IMG_IDXS_FILE);
+    string line;
+    while (getline(fin, line)) {
+        int id = stoi(line); // 0 indexed
+        glp_set_row_bnds(lp, row_num, GLP_FX, 0, 0);
+        ia[idx] = row_num; ja[idx] = N + id + 1; ar[idx] = 1;
+
+        idx ++;
+        row_num ++;
+    }
+    fin.close();
+#endif
     
     glp_load_matrix(lp, Na-1, ia, ja, ar);
     glp_iocp param;

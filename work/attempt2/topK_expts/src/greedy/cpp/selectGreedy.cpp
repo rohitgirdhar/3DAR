@@ -112,14 +112,35 @@ double computeTestErr(double E[][MAX_N],
     return res / tests.size();
 }
 
+void writeSelToFile(vector<bool> selected, string fname) {
+    ofstream fout(fname.c_str());
+    for (int i = 0; i < selected.size(); i++) {
+        if (selected[i]) fout << i << endl;
+    }
+    fout.close();
+}
+
+vector<bool> readSelFromFile(string fname, int N) {
+    vector<bool> res(N, false);
+    ifstream fin(fname.c_str());
+    string line;
+    while (getline(fin, line)) {
+        res[stoi(line)] = true;
+    }
+    fin.close();
+    return res;
+}
+
 int main(int argc, char* argv[]) {
     po::options_description desc("Allowed Options");
     desc.add_options()
         ("help", "Show this help message")
         ("err-file,e", po::value<string>()->required(), "Input Error mat file")
+        ("out-file,o", po::value<string>(), "Output file")
         ("tests-file,t", po::value<string>()->required(), "file with test files list")
         ("num-select,K", po::value<int>()->required(), "Number of elements to select")
         ("use-N,N", po::value<int>(), "Use only first NxN size submat from the mat file")
+        ("use-sel-list,u", po::value<string>(), "Use this file with selected ids instead of computing greedily. 0 indexed")
         ;
     po::variables_map vm;
     try {
@@ -127,6 +148,7 @@ int main(int argc, char* argv[]) {
         po::notify(vm);
     } catch (po::error &e) {
         cerr << e.what() << endl;
+        cerr << desc << endl;
         return -1;
     } 
     int N;
@@ -149,9 +171,17 @@ int main(int argc, char* argv[]) {
     }
     int K = vm["num-select"].as<int>();
     
-    uint64 start = GetTimeMs64(); 
-    vector<bool> selected = selectGreedy(E, train, tests, K, N);
+    uint64 start = GetTimeMs64();
+    vector<bool> selected;
+    if (vm.count("use-sel-list") > 0) {
+        selected = readSelFromFile(vm["use-sel-list"].as<string>(), N);
+    } else {
+        selected = selectGreedy(E, train, tests, K, N);
+    }
     cerr << "time elapsed in greedy select: " << (GetTimeMs64() - start) / 1000.0 << "sec" << endl;
+    if (vm.count("out-file") > 0) {
+        writeSelToFile(selected, vm["out-file"].as<string>());
+    }
 
     cout << computeTestErr(E, train, tests, selected) << endl;
     return 0;

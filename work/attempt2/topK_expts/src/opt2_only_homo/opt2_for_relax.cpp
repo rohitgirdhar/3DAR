@@ -1,6 +1,5 @@
 /**
  * opt.h
- * Without costs optimization, cost limited in constraints 
  */
 
 #include <glpk.h>
@@ -11,17 +10,17 @@
 #include <cstdlib>
 #include <set>
 
-#define E_FILE "../../homos/cpp/E_bob.txt"
+#define E_FILE "../../homos/cpp/E_sc_full.txt"
 /* Define the following 2 only if you need to prevent test 
  * elements from getting selected. note that the test set 
  * must have elements only idx < N */
 #define TEST_IMG_IDXS_FILE "../greedy/test_set_bob.txt"
 #define NTEST 15
 
-#define OUTDIR "cplex/bob/"
-#define ACT_N 96
-#define N 96
-#define K 80
+#define OUTDIR "cplex/temp/"
+#define ACT_N 1505
+#define N 100
+#define K (N/2)
 
 double MAX = 9999.0;
 double INF = 10 * MAX;
@@ -31,9 +30,9 @@ using namespace std;
 float E[ACT_N][ACT_N];
 const int Na = N + 3 * (N * N) + (N + N * N)
 #ifdef TEST_IMG_IDXS_FILE
-    + NTEST + 1
+    + NTEST
 #endif
-;
+    + 1;
 
 int ia[Na], ja[Na];
 double ar[Na];

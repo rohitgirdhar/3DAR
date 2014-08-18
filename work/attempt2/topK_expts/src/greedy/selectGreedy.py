@@ -8,7 +8,8 @@ import random
 
 inf = 99999999
 
-def selectGreedily(E, K, useMax, test_ids):
+def selectGreedily(E, K, useMax, test_ids, config):
+    print config
     N = np.shape(E)[0]
     selected = np.zeros([1,N])
     err = np.empty([1, N])
@@ -18,13 +19,13 @@ def selectGreedily(E, K, useMax, test_ids):
         maxdiff = 0
         maxdiff_i = 0
         for i in range(N):
-            if i in test_ids:
+            if i in test_ids and config['remove_test_imgs_while_training'] == 1:
                 continue
             if selected[0][i]:
                 continue
             diff = 0
             for j in range(N):
-                if j in test_ids:
+                if j in test_ids and config['remove_test_imgs_while_training'] == 1:
                     continue
                 if (err[0][j] > E[j][i]).all(): # E(j,i) gives the error in approx j by i
                     if useMax:
@@ -88,6 +89,7 @@ def main():
     parser.add_argument('-t', nargs=1, required=True, type=str, help='File with Test image IDs')
     parser.add_argument('-K', nargs=1, type=int, required=True, help='Size of K set')
     parser.add_argument('--max', action='store_const', const=True, help='Use the max instead of sum')
+    parser.add_argument('--keep-test-imgs-while-train', action='store_const', const=True, default=False, help='Select greedily from complete set, dont remove the test images')
     parser.add_argument('--select-random', 
             action='store_const', 
             const=True, 
@@ -113,7 +115,8 @@ def main():
         print 'selecting randomly'
         sel,match,ind_errs = selectRandom(E, K, test_ids)
     else:
-        sel,match,ind_errs = selectGreedily(E, K, args.max, test_ids)
+        config = {'remove_test_imgs_while_training': not args.keep_test_imgs_while_train}
+        sel,match,ind_errs = selectGreedily(E, K, args.max, test_ids, config)
     tot_err = sum(ind_errs)
 
     f = open(output_fname, 'w')

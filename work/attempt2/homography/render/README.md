@@ -10,12 +10,14 @@ This should give you a model with the camera parameters for each of the images (
 3. Now you will need:
     - CAD 3D model of the augmetation
     - CAD 3D model of the current state of the model (optional): This is required to handle occlusions due to the model itself.
-                                                                 For eg, in Charminar if we augment using just the snapshot of the whole super-structure,
-                                                                 it will and hide the top parts of chariot itself. We want it to be behind the structure.
+                                                                 For eg, in Stone Chariot if we augment using just the snapshot of the whole super-structure,
+                                                                 it will and hide the top parts of Chariot itself. We want it to be behind the structure.
                                                                  Hence, we need a snapshot that clips out the part that should not be overlayed. For this,
                                                                  you can pass the current state of the 3D model to the code and it will generate 2 snapshots:
                                                                  one of the augmentation and other of the current state, and clip off the augmentation where 
                                                                  there is something in the current structure.
+                                                                 [Here](https://www.dropbox.com/sh/w5g5rw6rx2mi7gj/AACDfBnzy8IweuQGEMQbnUDTa?dl=0) is the link to snapshots I used.
+                                                                 I'm talking about the difference in the `head_*` and `final_*` snapshot images.
                                                                  Else, just set  it to an empty 3D model, and it will give the whole augmentation itself (I
                                                                  used that for generating the snapshots for Charminar)
 4. Compile the above code with `make`
